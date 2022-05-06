@@ -1,6 +1,13 @@
 #include"game.h"
 #define _CRT_SECURE_NO_WARNINGS
-
+//void menu2()
+//{
+//	printf("*****************************\n");
+//	printf("******** 1.easy   ***********\n");
+//	printf("******** 2.middle ***********\n");
+//	printf("******** 3.master ***********\n");
+//	printf("*****************************\n");
+//}
 void InitBoard(char arr[ROWS][COLS], int x, int y,char set)
 {
 	for (int i = 0; i <= x ; i++)
@@ -127,8 +134,63 @@ int Checkboom(char arr1[ROWS][COLS], char arr2[ROWS][COLS], int x, int y)
 			}
 			else
 				printf("unknown address,please input again!\n");
+
 		}
 	}
-	
+	int flag = 0;
+	int amount = ROW * COL - num_boom;
+	for (int i = 1; i <= x; i++)
+	{
+		for (int j = 1; j <= y; j++)
+		{
+			if (arr2[i][j] != '*')
+				flag++;
+		}
+	}
+	if (flag == amount)
+		return 2;
 	return 0;
 }
+//void choose_dif()
+//{
+//	int in = 0;
+//	menu2();
+//	do
+//	{
+//
+//		printf("Please choose difficulty;>");
+//		scanf_s("%d", &in);
+//		switch (in)
+//		{
+//		case 1:
+//
+//			break;
+//		case 2:
+//		/*	#undef ROW
+//			#undef COL
+//			#undef num_boom
+//			#define ROW 15
+//			#define COL 15
+//			#define num_boom = 50;*/
+//			ROW = 15;
+//			COL = 15;
+//			num_boom = 50;
+//			break;
+//		case 3:
+//			/*#undef ROW
+//			#undef COL
+//			#undef num_boom
+//			#define ROW 25
+//			#define COL 25
+//			#define num_boom = 250;*/
+//			ROW = 25;
+//			COL = 25;
+//			num_boom = 250;
+//			break;
+//		default:
+//			printf("unknown input , please input again.\n");
+//		}
+//		if (in == 1 || in == 2 || in == 3)
+//			break;
+//	} while (1);
+//}
