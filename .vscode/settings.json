@@ -1,0 +1,26 @@
+
+    {
+        "files.autoSave": "afterDelay",
+        "files.autoGuessEncoding": true,
+        "workbench.list.smoothScrolling": true,
+        "editor.cursorSmoothCaretAnimation": true,
+        "editor.smoothScrolling": true,
+        "editor.cursorBlinking": "smooth",
+        "editor.mouseWheelZoom": true,
+        "editor.formatOnPaste": true,
+        "editor.formatOnType": true,
+        "editor.formatOnSave": true,
+        "editor.wordWrap": "on",
+        "editor.guides.bracketPairs": true,
+        //"editor.bracketPairColorization.enabled": true, (此设置vscode在较新版本已默认开启)
+        "editor.suggest.snippetsPreventQuickSuggestions": false,
+        "editor.acceptSuggestionOnEnter": "smart",
+        "editor.suggestSelection": "recentlyUsed",
+        "window.dialogStyle": "custom",
+        "debug.showBreakpointsInOverviewRuler": true,
+        "CC":"clang",
+        "CFLAGS":"-fsanitize=signed-integer-overflow -fsanitize=undefined -ggdb3 -O0 -std=c11 -Wall -Werror -Wextra -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wshadow",
+        "LDLIBS":"-lcrypt -lcs50 -lm",
+      }
+      
+      
