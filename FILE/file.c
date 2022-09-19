@@ -266,19 +266,185 @@ struct S
 // }
 //二进制方式读文件
 // size_t fread (void* buffer, size_t size,size_t count,FILE* stream);
-int main()
-{
-    struct S s = {0};
-    // open the file
-    FILE *pf = fopen("text.txt", "rb");
-    if (pf == NULL)
-    {
-        perror("fopen");
-        return 1;
-    }
-    // read
-    fread(&s,sizeof(struct S),1,pf));
-    printf("%s %d %lf\n", s.name, s.age, s.d);
+// int main()
+// {
+//     struct S s = {0};
+//     // open the file
+//     FILE *pf = fopen("text.txt", "rb");
+//     if (pf == NULL)
+//     {
+//         perror("fopen");
+//         return 1;
+//     }
+//     // read
+//     fread(&s,sizeof(struct S),1,pf));
+//     printf("%s %d %lf\n", s.name, s.age, s.d);
 
-    return 0;
-}
+//     return 0;
+// }
+
+// 5.文件的随机读写
+// 5.1 fseek
+// int fseek(FILE* stream, long offset,int origin);//流--偏移量--
+// int origin 有三个参数： SEEK_CUR(current文件指针当前的位置),SEEK_END(文件末尾的位置),SEEK_SET(文件开始的位置)
+
+// fseek+fgetc = 随机读
+//  int main()
+//  {
+//      //open and check the file
+//      FILE* pf = fopen("text.txt", "r");
+//      if(pf ==NULL)
+//      {
+//          perror("fopen");
+//          return 1;
+//      }
+//      //write randomly
+//      //read randomly
+//      int ch = fgetc(pf);
+//      printf("%c\n", ch);
+
+//     ch = fgetc(pf);
+//     printf("%c\n", ch);
+
+//     fseek(pf, 2, SEEK_SET);
+//     ch = fgetc(pf);
+//     printf("%c\n", ch);
+
+//     fseek(pf, 2, SEEK_CUR);
+//     ch = fgetc(pf);
+//     printf("%c\n", ch);
+
+//     fseek(pf, -2, SEEK_END);
+//     ch = fgetc(pf);
+//     printf("%c\n", ch);
+
+//     // close the file
+//     fclose(pf);
+//     pf = NULL;
+//     return 0;
+// }
+
+// fseek+fputc = 随机写
+//  int main()
+//  {
+//      FILE *pf = fopen("text.txt", "w");
+//      if(pf==NULL)
+//      {
+//          perror("fopen");
+//          return 1;
+//      }
+//      //write
+//      fputc('a', pf);
+//      fputc('b', pf);
+//      fputc('c', pf);
+//      fputc('d', pf);
+//      fputc('e', pf);
+//      fputc('f', pf);
+//      fseek(pf, -3, SEEK_CUR);
+//      fputc('w', pf);
+//      long t = ftell(pf);
+//      printf("%ld", t);
+//      // d->w
+//      //  close
+//      fclose(pf);
+//      pf = NULL;
+//      return 0;
+//  }
+
+// 5.2ftell
+// long ftell(FILE* stream)
+//用来显示当前文件流的偏移量，如上所示
+
+// 5.3 rewind
+//  void rewind(FILE* stream)
+//让文件指针的位置回到文件的起始位置
+
+//文本文件和二进制文件(.obj)
+//根据数据的组织形式，数据文件分为文本文件和二进制文件
+//数据在内存中以二进制的形式储存，如果不加转换的输出到外存，就是二进制文件。
+//如果要求在外存上以ASCII码值的形式存储，则需要在存储前转化。以ASCII字符的形式存储的文件就是文本文件。
+//一个数据在内存中是如何存储的呢？
+//字符一律以ASCII形式存储。数值型数据既可以用ASCII形式存储，也可以使用二进制形式存储。
+
+//假设有一个整数10000，如果以ASCII码值的形式，把每位都当作一个字符。总共五个字符，即五个字节。
+//如果以二进制存储，只占4个字节（一个int）
+//
+//测试代码
+// int main()
+// {
+//     int a = 10000;
+//     FILE *pf = fopen("text.txt", "wb");
+//     if(pf==NULL)
+//     {
+//         return 1;
+//     }
+//     fwrite(&a, 4, 1, pf);
+//     fclose(pf);
+//     pf = NULL;
+//     return 0;
+// }
+
+// 7.文件读取结束的判定
+// 7.1被错误使用的feof
+//牢记：在文件读取过程中，不能用feof函数的返回值直接用来判断文件的是否结束
+// feof是 应用于当文件读取结束的时候，判断是读取失败结束还是遇到文件尾结束的函数。
+//
+//文本文件读取是否结束，判断返回值是否为EOF(fgetc)或者NULL(fgets)
+//判断fgetc返回值是否为EOF
+//判断fgets返回值是否为NULL
+
+//二进制文件的读取结束判断，判断返回值是否小于实际要读的个数。
+//例如：
+// fread判断返回值是否小于实际要读的个数
+
+//正确使用的例子
+// text:
+// int main()
+// {
+//     int c;
+//     FILE *pf = fopen("text.txt", "r");
+//     if(!pf)
+//     {
+//         perror("fopen");
+//         return 1;
+//     }
+//     while((c = fgetc(pf))!=EOF)
+//     {
+//         putchar(c);
+//     }
+//     if(ferror(pf))//判断是否是遇到错误而结束的
+//         puts("I/O error when reading");
+//     else if (feof(pf))//判断是否是到文件末尾而结束的
+//         puts("End of file reached successfully");
+//     fclose(pf);
+//     pf = NULL;
+//     return 0;
+// }
+
+// 8.文件缓冲区
+//从内存像磁盘输出数据会首先送到内存中的缓冲区，装满缓冲区后才一起送到磁盘上。
+//如果从磁盘像计算机读入数据，则从磁盘文件中读取数据输入到内存缓冲区（充满缓冲区），在从缓冲区逐个的将数据送到程序数据区（程序变量等）。
+//缓冲区的大小根据C编译系统决定的。
+
+//              ----> 输出缓冲区  ------>
+// 程序数据区                               硬盘
+//              <---- 输入缓冲区  <------
+
+//简单测试
+// int main()
+// {
+//     FILE *pf = fopen("text.txt", "w");
+//     fputs("abcdef", pf);
+//     printf("SLEEP for 20 sec, already fputs but no content\n");
+//     Sleep(20000);
+
+//     printf("manually flush buffer\n");//use "fflush"
+//     fflush(pf);//when flushing buffer, the data has been written in the file
+//     printf("SLEEP again for 20 sec,and then open the file, find that there are content in the file\n");
+//     Sleep(20000);
+
+//     fclose(pf);
+//     //when closing the file, the buffer will also be cleaned
+//     pf = NULL;
+//     return 0;
+// }
