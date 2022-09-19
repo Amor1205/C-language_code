@@ -44,6 +44,7 @@ int main()
             break;
         case 0:
             printf("exit the address book\n");
+            DestroyAdd(pc);
             break;
         default:
             printf("have choosen a wrong number\n");

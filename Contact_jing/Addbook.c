@@ -9,21 +9,66 @@
 // 6.排序
 // 7.显示联系人
 #include "addbook.h"
+//静态的版本
+// void InitAddbook(Addbook *pc)
+// {
+//     assert(pc);
+//     pc->count = 0;
+//     memset(pc->data, 0, sizeof(pc->data)); //把pc中data部分内存全部变成0，不知道的字节数直接用sizeof计算
+// }
+//动态的版本
 void InitAddbook(Addbook *pc)
 {
     assert(pc);
     pc->count = 0;
-    memset(pc->data, 0, sizeof(pc->data)); //把pc中data部分内存全部变成0，不知道的字节数直接用sizeof计算
+    pc->data = (PeoInfo *)malloc(pc->capacity * sizeof(PeoInfo));
+    if (pc->data == NULL)
+    {
+        perror("InitContact::malloc");
+        return;
+    }
+    memset(pc->data, 0, pc->capacity * sizeof(PeoInfo));
 }
-
+//静态
+// void AddInfo(Addbook *pc)
+// {
+//     assert(pc);
+//     if (pc->count == MAX)
+//     {
+//         printf("Address book is already full.\n");
+//         return;
+//     }
+//     printf("please input the name:>\n");
+//     scanf("%s", pc->data[pc->count].name); // scanf需要取地址，但是name[]是数组名本来就是地址。
+//     printf("please input the age of %s:>\n", pc->data[pc->count].name);
+//     scanf("%d", &(pc->data[pc->count].age));
+//     printf("please input the sex of %s:>\n", pc->data[pc->count].name);
+//     scanf("%s", pc->data[pc->count].sex);
+//     printf("please input the tele of %s:>\n", pc->data[pc->count].name);
+//     scanf("%s", pc->data[pc->count].tele);
+//     printf("please input the address of %s:>\n", pc->data[pc->count].name);
+//     scanf("%s", pc->data[pc->count].addr);
+//     printf("add information successfully");
+// }
+void CheckCapacity(Addbook *pc)
+{
+    assert(pc);
+    if (pc->count == pc->capacity)
+    {
+        PeoInfo *tmp = (PeoInfo *)realloc(pc->data, (pc->capacity + 2) * sizeof(PeoInfo));
+        if (tmp != NULL)
+        {
+            pc->data = tmp;
+        }
+        pc->capacity += 2;
+    }
+}
+//动态版本
 void AddInfo(Addbook *pc)
 {
     assert(pc);
-    if (pc->count == MAX)
-    {
-        printf("Address book is already full.\n");
-        return;
-    }
+    CheckCapacity(pc);
+    //录入信息
     printf("please input the name:>\n");
     scanf("%s", pc->data[pc->count].name); // scanf需要取地址，但是name[]是数组名本来就是地址。
     printf("please input the age of %s:>\n", pc->data[pc->count].name);
@@ -143,4 +188,12 @@ void SortAbk(Addbook *pc)
     assert(pc);
     qsort(pc->data, pc->count, sizeof(PeoInfo), cmp_peo_by_name);
     printf("Sort successfully");
+}
+//销毁
+void DestroyAdd(Addbook *pc)
+{
+    free(pc->data);
+    pc->data = NULL;
+    pc->capacity = 0;
+    pc->count = 0;
 }
