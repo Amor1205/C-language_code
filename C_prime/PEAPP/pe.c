@@ -338,3 +338,23 @@
 // LINUX环境下标准头文件的目录在/usr/include
 //不同的环境有不同的标准头文件目录
 //
+//尽量不要重复包含，
+//因为包含头文件会把头文件的代码拷贝进源文件。
+//包含一次就会拷贝一次
+//所以在自己编写的头文件内部使用（1）：
+#pragma once
+//也可以使用（2）：
+#ifndef __TEST_H__ //(一般使用的是头文件的名称)
+#define __TEST_H__
+// CODE IN HEAD FILE
+#endif
+// ---> 防止头文件的重复引用
+
+// 4.其他的预处理指令
+//预处理阶段会处理很多的预处理指令
+//如 #include #define\#if \#endif \ #ifndef \ #elif \ #else \ #pragma \
+//每个预处理指令又有各自的作用
+//#pragma comment()
+//#pragma once
+//#pragma pack()
+//  《C语言深度解剖》
