@@ -17,4 +17,6 @@ SLTNode *SListFind(SLTNode *phead, SLTDataType x);
 void SListInsert(SLTNode **pphead, SLTNode *pos, SLTDataType x); //在pos前面插入
 void SListInsertAfter(SLTNode *pos, SLTDataType x);              //在后面插入
 void SListErase(SLTNode **pphead, SLTNode *pos);
+void SListEraseAfter(SLTNode *pos);
 void SListDestroy(SLTNode **phead);
+void SListDestroy1(SLTNode **pphead);

@@ -1,4 +1,7 @@
 #include "SList.h"
+
+//删除是先指再删
+
 void SListPrint(SLTNode *phead)
 {
     SLTNode *cur = phead;
@@ -46,11 +49,11 @@ void SListPushFront(SLTNode **pphead, SLTDataType x)
 }
 void SLitstPopBack(SLTNode **pphead)
 {
-    if (*pphead == NULL)
-    {
-        return;
-    }
-    // assert(*pphead!=NULL)//比较粗暴
+    // if (*pphead == NULL)
+    // {
+    //     return;
+    // }
+    assert(*pphead); //比较粗暴
     if (((*pphead)->next) == NULL)
     {
         free((*pphead)->next);
@@ -112,7 +115,58 @@ void SListInsert(SLTNode **pphead, SLTNode *pos, SLTDataType x)
 }
 void SListInsertAfter(SLTNode *pos, SLTDataType x)
 {
+    SLTNode *newnode = BuyListNode(x);
+    newnode->next = pos->next;
+    pos->next = newnode;
 }
 
-void SListErase(SLTNode **pphead, SLTNode *pos);
-void SListDestroy(SLTNode **phead);
+void SListErase(SLTNode **pphead, SLTNode *pos)
+{
+    assert(pphead);
+    assert(pos);
+
+    //头删
+    if (pos == *pphead)
+    {
+        *pphead = pos->next;
+        free(pos);
+    }
+    else
+    {
+        SLTNode *posPrev = *pphead;
+        while (posPrev->next != pos)
+        {
+            posPrev = posPrev->next;
+        }
+        posPrev->next = pos->next;
+        free(pos);
+    }
+}
+void SListEraseAfter(SLTNode *pos)
+{
+    assert(pos->next);
+    SLTNode *next = pos->next;
+    pos->next = next->next;
+    free(next);
+    next = NULL;
+}
+void SListDestroy(SLTNode **pphead)
+{
+    assert(pphead);
+    while (pphead)
+    {
+        SLitstPopBack(pphead);
+    }
+}
+void SListDestroy1(SLTNode **pphead)
+{
+    assert(pphead);
+    SLTNode *cur = pphead;
+    while(cur)
+    {
+        SLTNode *next = cur->next;
+        free(cur);
+        cur = next;
+    }
+    *pphead = NULL;
+}
