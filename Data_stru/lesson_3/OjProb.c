@@ -163,6 +163,108 @@ typedef struct ListNode ListNode;
 //     return slow;
 // }
 
-struct ListNode *mergeTwoLists(struct ListNode *list1, struct ListNode *list2)
-{
-}
+// struct ListNode *mergeTwoLists(struct ListNode *list1, struct ListNode *list2)
+// {
+//     struct ListNode *cur1 = list1, *cur2 = list2;
+//     struct ListNode *head = NULL, *tail = NULL;
+//     if (cur1 == NULL)
+//         return cur2;
+//     if (cur2 == NULL)
+//         return cur1;
+//     while (cur1 && cur2)
+//     {
+//         //比较
+//         if (cur1->val < cur2->val)
+//         {
+//             if (head == NULL)
+//             {
+//                 head = tail = cur1;
+//             }
+//             //尾插
+//             else
+//             {
+//                 tail->next = cur1;
+//                 tail = cur1;
+//             }
+//             //迭代
+//             cur1 = cur1->next;
+//         }
+//         else
+//         {
+//             if (head == NULL)
+//             {
+//                 head = tail = cur2;
+//             }
+//             else
+//             {
+//                 tail->next = cur2;
+//                 tail = cur2;
+//             }
+//             cur2 = cur2->next;
+//         }
+//     }
+//     if (cur1)
+//     {
+//         tail->next = cur1;
+//     }
+//     else
+//     {
+//         tail->next = cur2;
+//     }
+//     return head;
+// }
+
+// struct ListNode *mergeTwoLists(struct ListNode *list1, struct ListNode *list2)
+// {
+//     struct ListNode *cur1 = list1, *cur2 = list2;
+//     struct ListNode *head = NULL, *tail = NULL;
+//     if (cur1 == NULL)
+//         return cur2;
+//     if (cur2 == NULL)
+//         return cur1;
+//     if (head == NULL)
+//     {
+//         if (cur1->val < cur2->val)
+//         {
+//             head = tail = cur1;
+//             cur1 = cur1->next;
+//         }
+//         else
+//         {
+//             head = tail = cur2;
+//             cur2 = cur2->next;
+//         }
+//     }
+//     while (cur1 && cur2)
+//     {
+//         //比较
+//         if (cur1->val < cur2->val)
+//         {
+
+//             //尾插
+
+//             tail->next = cur1;
+//             tail = cur1;
+
+//             //迭代
+//             cur1 = cur1->next;
+//         }
+//         else
+//         {
+
+//             tail->next = cur2;
+//             tail = cur2;
+
+//             cur2 = cur2->next;
+//         }
+//     }
+//     if (cur1)
+//     {
+//         tail->next = cur1;
+//     }
+//     else
+//     {
+//         tail->next = cur2;
+//     }
+//     return head;
+// }

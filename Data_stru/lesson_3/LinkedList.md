@@ -652,7 +652,156 @@ struct ListNode* FindKthToTail(struct ListNode* pListHead, int k ) {
 
 ### 归并(合并两个有序链表)
 
-#### 思路
+#### ![CleanShot 2022-10-02 at 12.31.47@2x](/Users/amor/Library/Application Support/CleanShot/media/media_2PUOjhv9bG/CleanShot 2022-10-02 at 12.31.47@2x.png)思路
 
 一次比较链表中的节点，每次取小的节点尾插到新链表即可。
+
+##### 逻辑分析
+
+如果尾插到新链表的话，我们需要给定两个指针去指向list1和list2链表，并用head作为新链表的头，这样如果我们不给定多余的指针，我们必须每次遍历一遍新链表才能得到尾的所在，所以我们在最开始也定义一个尾，这样就省去了每次遍历的麻烦。
+
+```c
+    struct ListNode *cur1 = list1, *cur2 = list2;
+    struct ListNode *head = NULL, *tail = NULL;
+```
+
+我们想要把比较过后的小的那个给到新的链表里面，所以进行判断，但是需要考虑初始情况，即head为空时，这时候head和tail都为空，我们需要判断，***如果cur1-val小的话***，需要
+
+``` c
+            if (head == NULL)
+            {
+                head = tail = cur1;
+            }
+```
+
+反之亦然。
+
+随后中间逻辑就是尾插，
+
+```c
+            else
+            {
+                tail->next = cur1;
+                tail = cur1;
+            }
+```
+
+通过使用cur->next给到cur1进行迭代。我们上面尾插是不改变cur1的下一个指向的，所以直接使用下列代码即可。
+
+```c
+            cur1 = cur1->next;
+```
+
+最后，我们判断结束条件，应该是两个链表先遍历完一个即可。
+
+```c
+		while (cur1 && cur2)
+```
+
+遍历完一个链表之后，只需要把另外一个链表追加到新链表的后面即可。
+
+```c
+    if (cur1)
+    {
+        tail->next = cur1;
+    }
+    else
+    {
+        tail->next = cur2;
+    }
+```
+
+##### 代码
+
+```c
+struct ListNode *mergeTwoLists(struct ListNode *list1, struct ListNode *list2)
+{
+    struct ListNode *cur1 = list1, *cur2 = list2;
+    struct ListNode *head = NULL, *tail = NULL;
+    if (cur1 == NULL)
+        return cur2;
+    if (cur2 == NULL)
+        return cur1;
+    while (cur1 && cur2)
+    {
+        //比较
+        if (cur1->val < cur2->val)
+        {
+            if (head == NULL)
+            {
+                head = tail = cur1;
+            }
+            //尾插
+            else
+            {
+                tail->next = cur1;
+                tail = cur1;
+            }
+            //迭代
+            cur1 = cur1->next;
+        }
+        else
+        {
+            if (head == NULL)
+            {
+                head = tail = cur2;
+            }
+            else
+            {
+                tail->next = cur2;
+                tail = cur2;
+            }
+            cur2 = cur2->next;
+        }
+    }
+    if (cur1)
+    {
+        tail->next = cur1;
+    }
+    else
+    {
+        tail->next = cur2;
+    }
+    return head;
+}
+```
+
+##### 优化
+
+1. 我们发现，每次进入循环都要判断head到底是否为空，不妨把这个拿到循环外面来，只要写一个判断语句即可，省去了后面每次都要判断的辛苦。
+
+```c
+        if (cur1->val < cur2->val)
+        {
+            head = tail = cur1;
+            cur1 = cur1->next;
+        }
+        else
+        {
+            head = tail = cur2;
+            cur2 = cur2->next;
+        }
+```
+
+2. 带哨兵位的链表。
+
+带哨兵位就是说的是plist指向的头节点是不含值的节点，它的作用就是指向下一个节点，我们如果定义链表定义出带哨兵位的节点的话，就不需要传递二级指针，因为我们无须改变plist的值，而只是改变plist之后的指向。
+
+哨兵位一般都是malloc出来的。
+
+``` c
+head = tail = (ListNode*)malloc(sizeof(ListNode));
+```
+
+接下来我们需要做的就是往tail后面进行链接就可以了。
+
+但是不能返回head了，因为head只是哨兵位，而且我们在最后的时候我们需要释放这个哨兵位的头。
+
+我们应该先去储存哨兵位的下一位，也就是真正的头，随后free掉，然后返回新的头即可。
+
+``` c
+			struct ListNode* list = head->next;
+			free(head);
+			return list;
+```
 

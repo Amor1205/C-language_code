@@ -162,7 +162,7 @@ void SListDestroy1(SLTNode **pphead)
 {
     assert(pphead);
     SLTNode *cur = pphead;
-    while(cur)
+    while (cur)
     {
         SLTNode *next = cur->next;
         free(cur);
