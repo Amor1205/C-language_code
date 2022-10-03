@@ -633,8 +633,8 @@ struct ListNode* middleNode(struct ListNode* head){
 快慢指针，slow和fast定义好之后，fast先走k步，slow和fast再一起走，fast == NULL时，slow就是倒数第k个。
 
 ```c
-struct ListNode* FindKthToTail(struct ListNode* pListHead, int k ) {
-    struct ListNode* fast = pListHead, *slow = pListHead;
+		struct ListNode* FindKthToTail(struct ListNode* pListHead, int k ) {
+		struct ListNode* fast = pListHead, *slow = pListHead;
     while (k--) { //k--是走k步，--k是走k-1步，搞不清楚就带值
         //k大于链表长度
         if (!fast) {
@@ -803,5 +803,461 @@ head = tail = (ListNode*)malloc(sizeof(ListNode));
 			struct ListNode* list = head->next;
 			free(head);
 			return list;
+```
+
+### 链表分割
+
+现有一链表的头指针 ListNode* **pHead**，给一定值x，编写一段代码将所有小于x的结点排在其余结点之前，且不能改变原来的数据顺序，返回重新排列后的链表的头指针。
+
+#### 思路
+
+如果不要求保持原来的数据顺序，那我们就直接进行判断，小于x的头插，大于x的进行尾插就可以了。但是这个题目要求的是数据的顺序不变，那么我们需要转变策略，创建两个新链表，一个放大的，一个放小的，遍历一遍分好类之后，将二者合并即可。
+
+但是贴到网站上进行提交时，发现超出内存了。一般内存超出了限制是因为程序编写不当，导致死循环从而引起的。仔细分析可以发现，bigger的最末节点仍旧指向着smaller的最末节点，导致整个链表在不断的死循环，这时候我们应该让bigger的末尾节点指向NULL。
+
+#### 代码
+
+```c
+ListNode *partition(ListNode *pHead, int x)
+{
+    ListNode *smaller = NULL, *bigger = NULL;
+    ListNode *tails = NULL, *tailb = NULL;
+    smaller = tails = (ListNode *)malloc(sizeof(ListNode));
+    bigger = tailb = (ListNode *)malloc(sizeof(ListNode));
+    ListNode *cur = pHead;
+    while(cur)
+    {
+        if(cur->val<x)
+        {
+            //尾插到smaller里面去
+            tails->next = cur;
+            tails = cur;
+        }
+        else
+        {
+            tailb->next = cur;
+            tailb = cur;
+        }
+        cur = cur->next;
+    }
+    tails->next = bigger->next;
+  	bigger->next = NULL;
+    ListNode *lista = smaller->next;
+    free(bigger);
+    free(smaller);
+    return lista;
+}
+```
+
+### 链表的回文结构
+
+![CleanShot 2022-10-02 at 16.43.41@2x](/Users/amor/Library/Application Support/CleanShot/media/media_OKYOkUWP9V/CleanShot 2022-10-02 at 16.43.41@2x.png)
+
+#### 思路1
+
+首先空间复杂度为1，我们就不能额外的创建新链表。初步考虑为，第一个和倒数第一个比较，第二个和倒数第二个比较，(找到第k个方法是知道的，我们只需要定义快慢指针，让快指针提前走k步即可，然后让快慢一起走到快指针为NULL即可)
+
+但是经过编写之后发现太难实施。于是放弃这种思路。
+
+#### 思路2
+
+找到中间节点(引用之前的函数)，让之后的逆置(引用之前的函数)，随后进行一一比较。
+
+其中一个比较关键的点在于，如果我们这样编写， 中间节点的前一个节点的最终指向是逆置之后的整个链表的最后一个节点，分奇偶情况，如果是奇数情况，无需比较，因为前面的节点都可以一一对应，走到最后一个节点处，必然相等，程序继续运行，直接指向NULL，程序中止；如果是偶数情况，由于找中间节点时如果是偶数情况，我们找到的是中间两个节点中后面的那个节点，所以相比于前半段链表，后半段链表更先结束，前后段链表一一比较之后，后面指向NULL时，前半段的最后节点指向链表的最终节点，此时程序就中止了，所以不必考虑让前面的节点去指向空。
+
+思路比较关键，代码非常简单，注意引用之前的两组代码，将他们作为接口函数使用。	
+
+### 输入两个链表，找出它们的第一个公共节点
+
+![CleanShot 2022-10-02 at 17.46.54@2x](/Users/amor/Library/Application Support/CleanShot/media/media_qQx7VCUu9T/CleanShot 2022-10-02 at 17.46.54@2x.png)
+
+链表相交只能是Y字形而非类似两根直线相交，这是因为一个节点只能有一个指向。（相交实际上就是指向同一个节点，需要比较的是地址）
+
+实际上，题目分为两个部分
+
+1. 判断两个链表是否相交
+2. 如果相交，找出起始相交节点。
+
+#### ***错误思路***
+
+> 逆置两个链表，开始比较，找到第一个不同的节点，并返回这个节点的 前一个节点。
+
+这是错误的，这是因为如果逆置，如图所示，我们不知道c1是到底指向a2还是指向b3，也就是说，我们先逆置A链表，后逆置B链表，则c1指向b3，反之亦然，无法判断。![CleanShot 2022-10-02 at 19.58.36@2x](/Users/amor/Library/Application Support/CleanShot/media/media_eFZKOY7pzV/CleanShot 2022-10-02 at 19.58.36@2x.png)
+
+#### 思路1(暴力求解)
+
+依次取A链表中的每个节点跟B链表中的所有节点比较，如果有地址相同的节点，就是相交，第一个相同的交点，就是相交节点。但是时间复杂度高O(N^2)，穷举。
+
+#### 思路2，优化到O(N)
+
+1. 尾节点相同就相交，不相同就不相交。
+2. - 可以看如果两个链表长度相同，由于其相交之后的长度是相同的，那么可以知道相交节点之前的长度也是相同的。我们就只需要设定两个指针，同时开始比较即可；
+   - 如果两个链表长度不同，设其中A的长度为a，B的长度为b，相交节点之后的长度为x，则A需要走过(a-x)步才能找到相交节点，B需要走过(b-x)步才能找到相交节点。只需要先让长度较长的链表走过|a-b|步即可，这样会同时找到节点。
+   - 所以我们只需要先判断链表的长度再按上述方法找相交即可。
+
+##### 逻辑分析
+
+- 因为要找尾节点相同与否，所以至少都要从开头遍历一遍才可以。正好这样我们也可以顺便把两个链表的长度求出来。
+
+```c
+ListNode *tailA = headA, *tailB = headB;
+    int lengthA = 1, lengthB = 1;
+    //找尾巴，求长度
+    while (tailA->next)
+    {
+        tailA = tailA->next;
+        lengthA++;
+    }
+    while (tailB->next)
+    {
+        tailB = tailB->next;
+        lengthB++;
+    }
+```
+
+- 判断尾节点相同
+
+```c
+    //不相交
+    if(tailA != tailB)
+    {
+        return NULL;
+    }
+```
+
+- 因为我们后续的思路就是判断出A、B链表中较长的链表和较短的，所以我们可以先将其进行区分，如下、
+
+```c
+ListNode *longList = headA;
+    ListNode *shortList = headB;
+    if(lengthA < lengthB)
+    {
+        ListNode *longList = headB;
+        ListNode *shortList = headA;
+    }
+```
+
+- 长的多走他们之间长度的差值步即可。
+
+```c
+//长的走abs步
+    int gap = abs(lengthA - lengthB);
+    while (gap--)
+    {
+        longList = longList->next;
+    }
+```
+
+- 判断是否相等，如果相等就是结束了。
+
+```c
+    while(longList!=shortList)
+    {
+        longList = longList->next;
+        shortList = shortList->next;
+    }
+    return longList;
+```
+
+##### 代码
+
+下面的代码其中有一些多余的部分，是思考的部分
+
+```c
+struct ListNode *getIntersectionNode(struct ListNode *headA, struct ListNode *headB)
+{
+    ListNode *tailA = headA, *tailB = headB;
+    int lengthA = 1, lengthB = 1;
+    //找尾巴，求长度
+    while (tailA->next)
+    {
+        tailA = tailA->next;
+        lengthA++;
+    }
+    while (tailB->next)
+    {
+        tailB = tailB->next;
+        lengthB++;
+    }
+    //不相交
+    if(tailA != tailB)
+    {
+        return NULL;
+    }
+    // ListNode* curA = headA;
+    // ListNode* curB = headB;
+    //可以使用绝对值函数
+    //abs(lengthA - lengthB)
+
+    //下面这段函数太冗余了，完全是重复的代码，只是区分headA和headB
+    //可以设定一个长的和短的，如下
+    ListNode *longList = headA;
+    ListNode *shortList = headB;
+    if(lengthA < lengthB)
+    {
+        ListNode *longList = headB;
+        ListNode *shortList = headA;
+    }
+    //长的走abs步
+    int gap = abs(lengthA - lengthB);
+    while (gap--)
+    {
+        longList = longList->next;
+    }
+    while(longList!=shortList)
+    {
+        longList = longList->next;
+        shortList = shortList->next;
+    }
+    return longList;
+    // if (lengthA >= lengthB)
+    // {
+    //     int d = lengthA - lengthB;
+    //     while (d--)
+    //     {
+    //         curA = curA->next;
+    //     }
+    //     while(curA)
+    //     {
+    //         if(curA->next == curB->next)
+    //         {
+    //             return curA->next;
+    //         }
+    //         curA = curA->next;
+    //         curB = curB->next;
+    //     }
+    // }
+    // else
+    // {
+    //     int d = lengthB - lengthA;
+    //     while(d--)
+    //     {
+    //         curB = curB->next;
+    //     }
+    //     while(curB)
+    //     {
+    //         if (curA->next == curB->next)
+    //         {
+    //             return curA->next;
+    //         }
+    //         curA = curA->next;
+    //         curB = curB->next;
+    //     }
+    // }
+}
+```
+
+---
+
+# Singly-Linked List Oj
+
+## 条件
+
+```c
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     struct ListNode *next;
+ * };
+ */
+```
+
+## 环形链表
+
+### 给定一个链表，判断链表中是否有环
+
+![CleanShot 2022-10-03 at 00.37.13@2x](/Users/amor/Library/Application Support/CleanShot/media/media_VUj2Xr5SwQ/CleanShot 2022-10-03 at 00.37.13@2x.png)
+
+#### 思路
+
+*我们需要做的就是判断是否有环，所以可以定义一个fast 和 slow快慢指针，快指针每次走两步，慢指针每次走一步，如果快指针可以走到NULL，即无环，如果快指针一直走但是走不到头，就是有环，需要判断的是，快指针必定会比慢指针先多走一圈而追上慢指针，即相等。*
+
+#### 代码
+
+```c
+bool hasCycle(struct ListNode *head)
+{
+    struct ListNode *fast = head, *slow = head;
+    //fast->next和fast都应该不为空才行
+    while (fast && fast->next)
+    {
+
+        fast = fast->next->next;
+        slow = slow->next;
+        if (fast == slow)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+```
+
+#### 延伸问题
+
+> 为什么slow和fast一定在环中相遇，会不会在环里面错过，永远遇不上，证明一下。
+
+- 带环则一定会相遇
+- 分析证明：
+
+slow和fast的距离差始终为n，n为slow走过的步数，n从1开始增加，为正整数。每追一次，距离减少1，他们之间的距离最后都会减到0，这个点就是相遇的点。
+
+> 为什么slow走一步，fast走两步呢，能不能fast走n步呢，证明一下。
+
+如果slow走一步，fast走三步，那么每次slow走一步，它们会相差2步，slow刚进环之后假设距离差为N，如果N为奇数，则距离会变为N-2，N-4，...，1，-1。-1就代表他们之间的距离为C-1(C为环长)。
+
+- 如果C-1为奇数，那么就永远追不上了
+- 如果C-1为偶数，那么可以追上。
+
+假设slow一次走一步，fast一次走x步，以此类推
+
+- 那么就是(x-1)步为每次的差值，假设slow刚进环的二者距离差为N，N-n(x-1)，如果N是(x-1)的倍数，就可以追上。如果不是，比如N = n(x-1)-1，就是代表他们两个此刻的距离为C-1，如果C-1是(x-1)的倍数，就可以追上，否则，无法追上。
+- 总结一下：
+- - 如果N是步数差的整数倍，可以追上。
+  - 如果第一次追不上，那么会出现fast掠过slow但并不相遇。可能会出现从-1、-2、...、-(x-2)的情况。
+  - 当环长C加上上面的负数为步数差的整数倍时，也可以追上。
+
+### 给定一个链表，返回链表开始入环的第一个节点
+
+![CleanShot 2022-10-03 at 00.44.58@2x](/Users/amor/Library/Application Support/CleanShot/media/media_uk3JXQYQNY/CleanShot 2022-10-03 at 00.44.58@2x.png)
+
+#### 延伸问题
+
+> slow一次走一步，fast一次走两步，一定会相遇，如何求环的入口点呢？
+
+- 结论：
+
+- - 一个指针从相遇点开始走，另一个指针从链表头开始走(都是每次走一步)，它们会在环的入口点相遇。
+  - 两个指针同时从链表头开始走，第一次相遇时，走过的路程差就是环长C的整数倍。
+
+#### 思路1
+
+用上面的结论，即先找相遇点->再双指针求交点，找到的交点就是换的入口点。
+
+#### 代码1
+
+```c
+struct ListNode *detectCycle(struct ListNode *head)
+{
+    struct ListNode *slow = head, *fast = head;
+    while(fast&&fast->next)
+    {
+        fast = fast->next->next;
+        slow = slow->next;
+        if(slow == fast)
+        {
+            struct ListNode *meetNode = slow;
+            while(meetNode!=head)
+            {
+                meetNode = meetNode->next;
+                head = head->next;
+            }
+            return meetNode;
+        }
+    }
+    return NULL;
+}
+```
+
+#### 思路2
+
+我们把相遇点断开，让其指向空，会出现两个链表，一个是由原链表头指向相遇点，一个是由原来相遇点的后一个节点指向相遇点的链表。让两个链表求交点。交点即为环节点。（实践起来稍繁琐。）
+
+## [复制带随机指针的链表](https://leetcode.cn/problems/copy-list-with-random-pointer/)
+
+给你一个长度为 n 的链表，每个节点包含一个额外增加的随机指针 random ，该指针可以指向链表中的任何节点或空节点。
+
+构造这个链表的 深拷贝。 深拷贝应该正好由 n 个 全新 节点组成，其中每个新节点的值都设为其对应的原节点的值。新节点的 next 指针和 random 指针也都应指向复制链表中的新节点，并使原链表和复制链表中的这些指针能够表示相同的链表状态。复制链表中的指针都不应指向原链表中的节点 。
+
+例如，如果原链表中有 X 和 Y 两个节点，其中 X.random --> Y 。那么在复制链表中对应的两个节点 x 和 y ，同样有 x.random --> y 。
+
+返回复制链表的头节点。
+
+用一个由 n 个节点组成的链表来表示输入/输出中的链表。每个节点用一个 [val, random_index] 表示：
+
+val：一个表示 Node.val 的整数。
+random_index：随机指针指向的节点索引（范围从 0 到 n-1）；如果不指向任何节点，则为  null 。
+你的代码 只 接受原链表的头节点 head 作为传入参数。
+
+来源：力扣（LeetCode）
+链接：https://leetcode.cn/problems/copy-list-with-random-pointer
+
+![CleanShot 2022-10-03 at 16.40.44@2x](/Users/amor/Library/Application Support/CleanShot/media/media_ItC1s4TGx8/CleanShot 2022-10-03 at 16.40.44@2x.png)
+
+### 思路
+
+1. 复制节点，插入到原节点和下一个节点之间。(为的是建立复制后的节点与原节点的链接关系)，如图所示![CleanShot 2022-10-03 at 16.35.24@2x](/Users/amor/Library/Application Support/CleanShot/media/media_XPWsaX3rv6/CleanShot 2022-10-03 at 16.35.24@2x.png)
+2. 根据原节点random，处理复制节点的random。(比如13的random指向7，那么13后面的复制节点的random就会指向7的后面)
+3. 将复制的节点解下来然后单独链接在一起就可以了。然后恢复原链表链接关系。
+
+时间复杂度为O(N)，处理问题是优解。
+
+```c
+struct Node
+{
+    int val;
+    struct Node *next;
+    struct Node *random;
+};
+struct Node *copyRandomList(struct Node *head)
+{
+    //复制节点，然后插入
+    struct Node *cur = head, *curCopy = head;
+    //预先储存好cur的next
+    struct Node *next = cur->next;
+    // if(!cur)
+    // {
+    //     return NULL;
+    // }
+    while (cur)
+    {
+        //复制节点的值
+        curCopy = (struct Node *)malloc(sizeof(struct Node));
+        curCopy->val = cur->val;
+        //指向
+        cur->next = curCopy;
+        curCopy->next = next;
+        //迭代
+        cur = next;
+        next = next->next;
+    }
+    //将random的值写入curcopy
+    //从头开始数，奇数为原始链表，偶数为复制的节点
+    cur = head;
+    while (cur)
+    {
+        curCopy = cur->next;
+        //复制random
+        if (!cur->random)
+        {
+            curCopy->random = NULL;
+        }
+        curCopy->random = cur->random->next;
+        //迭代
+        cur = curCopy->next;
+        //什么时候中止呢？
+    }
+    //解开链接，然后重新形成新的链表
+    //改变curcopy的next值即可。
+    struct Node *copyHead = (struct Node *)malloc(sizeof(struct Node));
+    copyHead = head->next;
+    //为了尾插,定义tail
+    struct Node *copyTail = copyHead;
+
+    while (cur)
+    {
+        curCopy = cur->next;
+        struct Node *next = curCopy->next;
+        //尾插
+        copyTail->next = curCopy;
+        //恢复原节点
+        cur->next = next;
+        //迭代
+        copyTail = curCopy;
+        cur = next;
+    }
+    cur->next = NULL;
+    return head->next;
+}
 ```
 
