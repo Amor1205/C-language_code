@@ -1,6 +1,6 @@
 #include "Stack.h"
 
-StackInit(ST *ps)
+void StackInit(ST *ps)
 {
     assert(ps);
     ps->a = NULL;
