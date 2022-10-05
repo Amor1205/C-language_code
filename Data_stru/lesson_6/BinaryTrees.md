@@ -114,9 +114,29 @@ struct Node
 2. 完全二叉树：
 
    - 前N-1层都是满的
+   
    - 最后一层不满，但是最后一层从左到右是连续的
-   - 最多只有一个度为1的节点
 
+   - 最多只有一个度为1的节点
+   
+   - 高度为h的完全二叉树的节点个数范围是：2^h-1^ ~ 2^h^-1
+   
+   - 具有n个节点的完全二叉树，叶子节点的个数为：
+   
+     > n~0~ + n~1~ +n~2~ = n
+     >
+     > n~0~ = n~2~ +1
+     >
+     > -->2n~0~ + n~1~ = n+1
+     >
+     > 又知道完全二叉树最多只有一个度为1的节点
+     >
+     > - n如果为偶数，n+1奇数，n~1~必须为1；
+     >
+     > - n如果为奇数，n+1偶数，n~1~必须为0；
+   
+     
+   
    ![CleanShot 2022-10-04 at 23.11.02@2x](/Users/amor/Library/Application Support/CleanShot/media/media_s9UTOo4kgY/CleanShot 2022-10-04 at 23.11.02@2x.png)
 
 ### 二叉树的存储结构
@@ -130,8 +150,8 @@ struct Node
 - 对任何一棵二叉树，如果度为0其叶结点个数为 n~0~,度为2的分支结点个数为 n~2~,则有n~0~=n~2~ +1。***换言之，我们叶子节点的个数永远比度为2的节点个数多1个。***
 - 若规定根节点的层数为1，具有n个结点的满二叉树的深度，***h=Log~2~(n+1)。***
 - 对于具有n个结点的完全二叉树，如果按照从上至下从左至右的数组顺序对所有节点从0开始编号，则对于序号为的结点有：
-  1. 若i>0，i位置节点的双亲序号：(-1)/2；j=0，为根节点编号，无双亲节点
-  2. 若2i+1~n，左孩子序号：2i+1，2i+1>=n否则无左孩子
+  1. 若i>0，i位置节点的双亲序号：(i-1)/2；若i=0，为根节点编号，无双亲节点
+  2. 若2i+1>n，左孩子序号：2i+1，2i+1>=n否则无左孩子
   3. 若2i+2<n，右孩子序号：2i+2，2i+2>=n否则无右孩子
 
 二叉树不学习增删查改，普通二叉树的增删查改没有意义，主要学习控制它的结构。以后完成搜索二叉树，在此基础上实现AVL树和红黑树，这些才会研究他的增删查改。
@@ -159,7 +179,9 @@ struct Node
 ### 堆的概念及结构
 
 - 大堆：树中一个树及子树中，任何一个父亲都大于等于孩子。
-- 小堆：树中一个树及子树中，任何一个父亲都小于等于孩子
+- 小堆：树中一个树及子树中，任何一个父亲都小于等于孩子。
+
+所有的数组都可以表示成完全二叉树，但是他不一定是堆。
 
 堆的应用：
 
@@ -219,7 +241,186 @@ void HeapDestroy(HP *hp)
 
 堆插入数据对其他节点没有影响，只是可能会影响从他到跟节点路径上的节点关系
 
-我们采用向上调整策略，新插入的子节点找到父节点，比较后大的值成为父节点，小的值称为子节点，然后比较直到比较到根节点或者父节点大于插入的数据节点。
+我们采用***向上调整***策略，新插入的子节点找到父节点，比较后大的值成为父节点，小的值称为子节点，然后比较直到比较到根节点或者父节点大于插入的数据节点。
+
+```c
+void AdjustUp(int *a, int size, int child) // child = hp->size
+{
+    assert(a);
+    int parent = (child - 1) / 2;
+    while (child > 0)
+    {
+        if (a[child] > a[parent])
+        {
+            HPDataType tmp = a[child];
+            a[child] = a[parent];
+            a[parent] = tmp;
+
+            child = parent;
+            parent = (child - 1) / 2;
+        }
+        else
+            break;
+    }
+}
+```
+
+```c
+void HeapPush(HP *hp, HPDataType x)
+{
+    assert(hp);
+    //实现增容
+    if (hp->size == hp->capacity)
+    {
+        size_t newCapacity = hp->capacity == 0 ? 4 : hp->capacity * 2;
+        HPDataType *tmp = (HP *)realloc(hp->a, sizeof(HP) * newCapacity);
+        if (!tmp)
+        {
+            perror("malloc");
+            exit(-1);
+        }
+        hp->a = tmp;
+        hp->capacity = newCapacity;
+    }
+    //假设实现大堆
+    AdjustUp(hp->a, hp->size, hp->size - 1);
+}
+```
+
+#### 删除堆顶数据
+
+删除堆顶数据的意义是删除最值，如果暴力删除然后错位会导致
+
+- 堆结构完全改变，全部乱套。
+- 时间复杂度O(N)，不简便。
+
+我们的思路是：
+
+1. 我们把堆顶数据和堆底数据位置置换。
+2. 堆顶元素向下调整。
+3. 跟左右孩子中小的那个交换（假设的是小堆）。
+4. 中止条件
+   - 父亲<=小的孩子则停止。
+   - 或者到了叶节点(叶子的特征没有左孩子，左孩子下标超出数组范围)。
+
+由于置换我们经常用，所以单独写了置换函数
+
+```c
+void HeapSwap(HPDataType *px, HPDataType *py)
+{
+    HPDataType tmp = *px;
+    *px = *py;
+    *py = tmp;
+}
+```
+
+向下调整，很多小伙伴会比较纠结父节点到底是和左孩子还是和右孩子比较大小，这里我们不妨只定义孩子child节点，由于数组在内存中连续存放，可以轻易定义到child右边的节点就是右孩子(需要判断右孩子存在与否)，然后寻找这两个里面大的那个孩子和父亲做比较，如果孩子大，则孩子与父亲交换。（以大堆为例）
+
+比较官方的写法是：
+
+```c
+void AdjustDown(int *a, int size, int parent)
+{
+    assert(a);
+    int child = parent * 2 + 1;
+    while (child < size)
+    {
+        //选出左右孩子中大的那个
+        if (child + 1 < size && a[child + 1] > a[child])
+        {
+            child++;
+        }
+        //如果大的孩子 大于 父亲，交换
+        if (a[child] > a[parent])
+        {
+            HeapSwap(&a[child], &a[parent]);
+            parent = child;
+            child = parent * 2 + 1;
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+```
+
+***时间复杂度为：O(log~2~N)，（高度）***
+
+此外再提供一种思路，比较清晰，也是找到大孩子，不过采用了把找大孩子作为一个函数来编写。
+
+```c
+int SearchForBigChild(int parent,int size)
+{
+    int smallChild = parent * 2 + 1;
+    int bigChild = parent * 2 + 2;
+    //有右孩子
+    if (bigChild < size)
+    {
+        bigChild = smallChild > bigChild ? smallChild : bigChild;
+    }
+    //只有一个孩子
+    else
+        bigChild = smallChild;
+
+    return bigChild;
+}
+//默认大堆
+void AdjustDown(int *a, int size, int parent)
+{
+    assert(a);
+    HeapSwap(&a[parent], &a[size - 1]);
+    int bigChild = SearchForBigChild(parent, size);
+    while (bigChild < size)
+    {
+        if (a[parent] < a[bigChild])
+        {
+            HeapSwap(&a[parent], &a[bigChild]);
+
+            parent = bigChild;
+            bigChild = SearchForBigChild(parent, size);
+        }
+        else
+            break;
+    }
+}
+
+```
+
+随后编写删除函数
+
+```c
+void HeapPop(HP *hp)
+{
+    //只能删除堆顶的数据
+    assert(hp);
+    assert(!HeapEmpty(hp));
+    //对换
+    HeapSwap(&hp->a[0], &hp->a[hp->size - 1]); //最后一个数据是size-1
+    hp->size--;
+    AdjustDown(hp->a, hp->size, 0);
+}
+```
+
+### 经典的topK问题
+
+在N个数中找出最大的前K个
+
+| 方式 |                             思路                             |
+| ---- | :----------------------------------------------------------: |
+| 1    |     先排降序，前K个就是最大的。时间复杂度为O(N*log~2~N)      |
+| 2    | N个数依次插入大堆(建立N个数的堆时间复杂度为O(N) )，PopK次(时间复杂度为O(K*log~2~N))，每次取堆顶的数据就是前K个。时间复杂度为O(N+Klog~2~N) |
+| 3    | 假设N非常大，内存中存不下这些数，它们存在文件中，方式1、2都不能用了。（1G约为10亿字节)我们这么做：1.用前K个数建立K个数的小堆，2.用剩下的N-K个数依次跟堆顶的数据进行比较，如果比堆顶的数据大，就替换堆顶的数据，在向下调整，3.最后堆里面的K个数就是最大的K个数。时间复杂度为：O(K+(N-K)*logK) ~ O(N logK) ~ O(N) |
+
+
+
+### 堆排序
+
+
+
+
+
+
 
 ## 二叉树的顺序结构及实现
 
