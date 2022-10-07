@@ -152,6 +152,3 @@ HPDataType HeapTop(HP *hp)
     assert(!HeapEmpty(hp));
     return hp->a[0];
 }
-void HeapSort(int *a, int n)
-{
-}
