@@ -412,7 +412,31 @@ void HeapPop(HP *hp)
 | 2    | N个数依次插入大堆(建立N个数的堆时间复杂度为O(N) )，PopK次(时间复杂度为O(K*log~2~N))，每次取堆顶的数据就是前K个。时间复杂度为O(N+Klog~2~N) |
 | 3    | 假设N非常大，内存中存不下这些数，它们存在文件中，方式1、2都不能用了。（1G约为10亿字节)我们这么做：1.用前K个数建立K个数的小堆，2.用剩下的N-K个数依次跟堆顶的数据进行比较，如果比堆顶的数据大，就替换堆顶的数据，在向下调整，3.最后堆里面的K个数就是最大的K个数。时间复杂度为：O(K+(N-K)*logK) ~ O(N logK) ~ O(N) |
 
+```c
+void PrintTopK(int *a, int n, int k)
+{
+    HP hp;
+    HeapInit(&hp);
+    //创建K个数的小堆
+    for (int i = 0; i < k; ++i)
+    {
+        HeapPush(&hp, a[i]);
+    }
+    //剩下N-K个数与堆顶数据比较，比他大就替换他进堆
+    for (int i = k; i < n; i++)
+    {
+        if (a[i] > HeapTop(&hp))
+        {
+            HeapPop(&hp);
+            HeapPush(&hp, a[i]);
+        }
+    }
+    HeapPrint(&hp);
+    HeapDestroy(&hp);
+}
+```
 
+注意：TopK找前K个最大数，需要建立小堆；等到堆排序的时候，排升序，需要建立大堆。
 
 ### 堆排序
 
@@ -503,11 +527,158 @@ void HeapSort(int *a, int n)
 }
 ```
 
+堆排序是迄今为止比较优的排序，因为其时间复杂度是O(N*logN).
 
+### 建堆的时间复杂度
 
+因为堆是完全二叉树，而满二叉树也是完全二叉树。此处为了简化使用满二叉树来证明(时间复杂度本来看的就是近似值，多几个节点并不影响最终结果)
 
+假设树高为h，则第k层有2^k-1^个节点，第k层又是倒数第h-k+1层，需要的最坏情况下(最多)的向下调整次数为：(h-k+1)-1 = h-k次，节点数乘以向下调整次数就是这一层总共需要调整的次数。把每层的依次相加，就得到了总共需要向下调整的次数。
 
+等比乘以等差，用错位相减。最终算出来总共需要移动节点的总的移动步数值为：
 
+T(n) = n - log~2~(n+1) 约为n。
+
+## 二叉树的链式结构及实现
+
+普通二叉树的增删查改没有什么价值，因为用来存放数据太复杂了。它的价值在于
+
+- 在他的基础之上增加一些性质，才有意义，比如
+  - 搜索二叉树，左子树的值都比父节点小，右子树的值逗比父节点大。最多可以查找高度次。->平衡搜索二叉树、AVLTree、红黑树 -> B树
+  - huffman tree
+
+不关注增删查改，关注递归遍历结构。
+
+学习这个是为了后面学习更有用的树打基础，同时很多oj题目结构普通二叉树。
+
+### 前序、中序以及后序遍历
+
+学习二叉树的结构，最简单的方式就是遍历。二叉树遍历 (Traversal)时按照某种待定的规则，依次堆二叉树中的节点进行相应的操作，并且每个节点只操作一次。
+
+二叉树可以分为根、左子树和右子树。走到空就中止。
+
+二叉树的遍历分为：前序/中序/后序的递归结构遍历。![CleanShot 2022-10-08 at 23.22.32@2x](/Users/amor/Library/Application Support/CleanShot/media/media_sQfEi8qCFO/CleanShot 2022-10-08 at 23.22.32@2x.png)
+
+1. 前序遍历（preorder Traversal） -- 访问跟节点的操作发生在遍历左右子树之前。
+
+   根 -> 左子树 -> 右子树 
+
+   也就是说，遍历顺序为： A->B->D ->NULL(left) -> NULL(right) -> NULL(B下面) -> C -> E -> NULL(left) ->NULL(right)->F->NULL(left)->NULL(right) 
+
+   前期学习应该把空写出来，表示清楚的遍历顺序，但是在打印的时候由于是空，所以不会打印出来。
+
+2. 中序遍历（Inorder Traversal） -- 访问根节点的操作发生在遍历其左右子树中间。
+
+   左子树 -> 根 -> 右子树
+
+   也就是访问A先访问A的左子树B，访问B先访问B的左子树D，访问D先访问D的左子树NULL，所以是：
+
+   NULL(left) -> D ->NULL(right) -> B -> NULL(right) -> A -> NULL(left) -> E -> NULL(right) -> C -> NULL(left) -> F -> NULL(right) 
+
+3. 后序遍历（postorder Traversal）
+
+   左子树 -> 右子树 -> 根
+
+   NULL(left) -> NULL(right) -> D -> NULL(right) -> B ->NULL(left) -> NULL( right) -> E -> NULL(left) -> NULL(right) -> F -> C -> A
+
+## 实现遍历
+
+分置思想，大事化小小事化了
+
+### 前序遍历
+
+```c
+void PreOrder(BTNode *root)
+{
+    if(root == NULL)
+    {
+        printf("NULL ");
+        return;
+    }
+    printf("%c ",root->data);
+    PreOrder(root->left);
+    PreOrder(root->right);
+}
+```
+
+本质就是遇到空或者调用完成后就会回到调用的地方，然后继续进行递归。
+
+### 中序遍历
+
+```c
+void InOrder(BTNode *root)
+{
+    if(!root)
+    {
+        printf("NULL ");
+        return;
+    }
+    PreOrder(root->left);
+    printf("%c ", root->data);
+    PreOrder(root->right);
+}
+```
+
+遇到了不为空的节点，先走这个节点的左子树，左子树不为空，再找左子树，直到为空，打印，然后往回走。只是因为顺序不同，打印的时机不同。
+
+### 后序遍历
+
+```c
+void PostOrder(BTNode *root)
+{
+    if (!root)
+    {
+        printf("NULL ");
+        return;
+    }
+    PreOrder(root->left);
+    PreOrder(root->right);
+    printf("%c ", root->data);
+}
+```
+
+### 求二叉树节点的个数
+
+如果我们用一遍遍历。在此我们用前序遍历写一下。
+
+---
+
+错误：
+
+```c
+int BinaryTreeSize(BTNode *root)
+{
+    int num = 0;
+    if (!root)
+    {
+        printf("NULL ");
+        return;
+    }
+    num++;//这样是不对的。结合栈帧的知识，每次递归都是建立栈帧，出函数后会销毁
+    //用静态的和用全局的都会出现多次调用存在问题。（不会销毁）
+    BinaryTreeSize(root->left);
+    BinaryTreeSize(root->right);
+}
+```
+
+---
+
+我们可以在main函数里创建一个变量，然后传变量的地址进去就可以了。
+
+```c
+void BinaryTreeSize(BTNode *root, int *pn)
+{
+    if (!root)
+    {
+        return;
+    }
+    ++(*pn);
+    BinaryTreeSize(root->left, pn);
+    BinaryTreeSize(root->right, pn);
+}
+```
+
+调用多次也不会出现问题。还有一种方式，返回值可以帮助我们解决：
 
 
 
@@ -515,5 +686,4 @@ void HeapSort(int *a, int n)
 
 ## 二叉树的顺序结构及实现
 
-## 二叉树的链式结构及实现
-
+## 
