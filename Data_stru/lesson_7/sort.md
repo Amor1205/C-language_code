@@ -656,6 +656,8 @@ key选最左边，如果单趟排完序之后key依然在很靠左的位置，�
 - 随机选key ()
 - 三数取中，在左边中间和右边三者中选不大不小的值。
 
+而且快排面对一些极端情景，比如全部是相同的值，或者是全部是232323232323232323这种交替重叠数列，是非常难处理的。如果面对这种可以考虑换用希尔排序。
+
 接下来我们用三数取中去优化hoare版本代码。
 
 #### 代码优化
@@ -760,4 +762,200 @@ void Partion(int *a, int left, int right)
 挖坑法的性能与hoare版本并没有本质的区别，只是略优，因为不用再处理key在左边，先走右边的步骤了。
 
 ### 前后指针作key
+
+这里的前后指针实际上是前后下标，其中cur找小，并把小的往左边翻，prev把大的序列往右边推。
+
+这个方法很简洁，而且写起来非常快，所以这三种方法里面首推这一种。但是效率并没有本质提升，因为这三种单趟排序都是O(N)。
+
+```c
+void PrevCurPointer(int *a, int left, int right)
+{
+    //三数取中挪过来，防止最坏情况发生
+    int mid = GetMidIndex(a, left, right);
+    Swap(&a[mid], &a[left]);
+    int key = left;
+
+    int prev = left;
+    int cur = left + 1;
+    while (cur <= right)
+    {
+        if (a[cur] <= a[key])
+        {
+            Swap(a[cur], a[prev++]);
+        }
+        else
+        {
+            cur++;
+        }
+    }
+    Swap(&a[prev], &a[key]);
+    return prev;
+}
+```
+
+### 对递归的优化
+
+因为划分子区间后实际上递归的次数是每次都成倍增长的，尤其是最后几次的递归次数是非常多的。如果我们用条件判断一下，来提前终止最后几次的递归，不采用递归的方式解决后几层的排序了，而是采用其他简单排序的方式，刚刚比较了用直接插入排序比较好。
+
+```c
+void QuickSort(int *a, int left, int right)
+{
+    if (left >= right)
+        return;
+    //快排的小区间优化，当分割到小区间后，不再用递归分割思想让这段子区间有序
+    //对于递归快排，减少递归次数
+    if(right-left+1<10)
+    {
+        InsertSort(a+left, right - left + 1);
+    }
+    int key = PartQuickSort(a, left, right);
+    QuickSort(a, left, key - 1);
+    QuickSort(a, key + 1, right);
+}
+```
+
+### 非递归快排
+
+思考递归快排，在排序的时候，找到key，分左右区间， 左右区间都在栈帧中储存，所以不会弄丢。如果用非递归快排，就必须先储存好左右区间的值，否则我们等我们排完左区间，不知道右区间的起始和中止。
+
+可以考虑存放在栈中，栈先入后出，先处理左区间，就先入右区间。左区间出的时候入左区间的右、左区间，直到不需要处理的时候不入栈了。当栈中为空，则排序完毕。
+
+```c
+//用栈
+void QuickSortNonR(int *a, int left, int right)
+{
+    ST st;
+    StackInit(&st);
+    StackPush(&st, left);
+    StackPush(&st, right);
+    while (!StackEmpty(&st))
+    {
+        int end = StackTop(&st);
+        StackPop(&st);
+        int begin = StackTop(&st);
+        StackPop(&st);
+
+        int key = Pariton(a, begin, end);
+
+        if(key+1 <end)
+        {
+            StackPush(&st, key + 1);
+            StackPush(&st, end);
+        }
+        if(begin <key-1)
+        {
+            StackPush(&st, begin);
+            StackPush(&st, key);
+        }
+    }
+    StackDestroy(&st);
+}
+```
+
+虽然是采用非递归，但是还是递归思想。先走左边，走遍左边子区间后再走右区间。又是因为用的是栈，先进后出。
+
+为什么采用非递归？因为递归深度太深的程序，只能考虑非递归，储存在堆里面。
+
+## 归并排序
+
+如果给两个有序数组，我们可以把他们归并成一个有序数组。
+
+假设我们排升序
+
+假设数组的左边有序，右边也有序，O(N)可以归并成一个有序数组。**开辟一个数组空间**，设定双指针，谁小放谁，先走完的程序终止并把没走完的元素放到新数组后面去。
+
+前提**是左右两边都有序才可以用O(N)的时间复杂度完成排序。**如果给我们一个完全无序的数组呢？我们依旧采用分置思想，让左右区间有序就实际上让左右区间的左右区间有序，递归解决。
+
+创立子函数，
+
+```c
+void _MergeSort(int *a, int left, int right, int *tmp)
+```
+
+函数创建好之后首先要写判断条件，记得写。可能一开始对于递归种植条件不清晰，但是一定要记得写，否则递归无法停止了。然后子区间进行递归调用，
+
+```c
+    if (left >= right)
+    {
+        return;
+    }
+    int mid = left + (right - left) / 2;
+    // [left, mid] [mid+1, right]
+    _MergeSort(a, left, mid, tmp);
+    _MergeSort(a, mid + 1, right, tmp);
+```
+
+划分了区间，[left, mid]  , [mid+1, right]。
+
+首先调用左区间的left和right即：left & mid
+
+右区间的left和right即：mid+1 & right
+
+```mermaid
+graph TD
+a(数组)-->b(左区间)
+a-->c(右区间)
+b-->d(左区间)
+b-->e(右区间)
+c-->f(左区间)
+c-->g(右区间)
+```
+
+划分到左区间的left = right时，只剩下一个元素了，有序。同时右区间也变成有序了，开始归并，合并到tmp数组里。合并到tmp数组里的是一个有序的数组，我们知道有序的数组才能进行继续归并，所以可以以此类推，直至整个数组有序。
+
+```c
+    int begin1 = left, end1 = mid;
+    int begin2 = mid + 1, end2 = right;
+    int tmpleft = left;
+    while (begin1 <= end1 && begin2 <= end2)
+    {
+        if (a[begin1] < a[begin2])
+        {
+            tmp[tmpleft++] = a[begin1++];
+        }
+        else
+        {
+            tmp[tmpleft++] = a[begin2++];
+        }
+    }
+```
+
+随后我们需要注意，归并的结束时左右两边只有一个走到头了，但是因为都有序，我们可以把没走到头的直接都给到tmp数组的后面。
+
+```c
+    while (begin1 <= end1)
+    {
+        tmp[tmpleft++] = a[begin1++];
+    }
+    while (begin2 <= end2)
+    {
+        tmp[tmpleft++] = a[begin2++];
+    }
+```
+
+```c
+    //tmp 数组拷贝回a
+    for (int j = left; j <= right;j++)
+    {
+        a[j] = tmp[j];
+    }
+```
+
+因为我们的tmp数组是需要临时创建的，所以主函数进行一个开辟空间和子函数的调用即可。不要忘记free掉malloc的空间！
+
+```c
+void MergeSort(int *a, int n)
+{
+    int *tmp = (int *)malloc(sizeof(int) * n);
+    if (tmp == NULL)
+    {
+        perror(malloc);
+        exit(-1);
+    }
+    _MergeSort(a, 0, n - 1, tmp);
+
+    free(tmp);
+    tmp = NULL;
+}
+```
 
