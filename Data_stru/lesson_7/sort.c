@@ -436,3 +436,154 @@ void MergeSort(int *a, int n)
     free(tmp);
     tmp = NULL;
 }
+
+void MergeSortNonR(int *a, int n)
+{
+    int *tmp = (int *)malloc(sizeof(int) * n);
+    if (tmp == NULL)
+    {
+        perror(malloc);
+        exit(-1);
+    }
+    int gap = 1;
+    while (gap < n)
+    {
+        for (int i = 0; i < n; i += 2 * gap) // [i ~ i+gap-1] [i+gap ~ i+gap*2-1]
+        {
+            int begin1 = i, end1 = (i + gap - 1) < n ? (i + gap - 1) : (n - 1);
+            int begin2 = (i + gap) < n ? (i + gap) : (n - 1), end2 = (i + gap * 2 - 1) < n ? (i + gap * 2 - 1) : (n - 1);
+            int index = 0;
+            // end1越界，begin2，end2不存在
+            // begin2,end2 不存在
+
+            while (begin1 <= end1 && begin2 <= end2)
+            {
+                if (begin1 < begin2)
+                {
+                    tmp[index++] = a[begin1++];
+                }
+                else
+                {
+                    tmp[index++] = a[begin2++];
+                }
+            }
+            while (begin1 <= end1)
+            {
+                tmp[index++] = a[begin1++];
+            }
+            while (begin2 <= end2)
+            {
+                //如果是[8,8] [8,8]的情况，即begin1 = end1 , begin2 = end2
+                // index会越界加条件判断
+                if (index >= end2)
+                    break;
+                tmp[index++] = a[begin2++];
+            }
+        }
+        gap *= 2;
+    }
+    //归并数组数据拷贝回原数组
+    for (int j = 0; j <= n - 1; j++)
+    {
+        a[j] = tmp[j];
+    }
+    free(tmp);
+    tmp = NULL;
+}
+
+void MergeSortNonR2(int *a, int n)
+{
+    int *tmp = (int *)malloc(sizeof(int) * n);
+    if (tmp == NULL)
+    {
+        perror(malloc);
+        exit(-1);
+    }
+    int gap = 1;
+    while (gap < n)
+    {
+        for (int i = 0; i < n; i += 2 * gap) // [i ~ i+gap-1] [i+gap ~ i+gap*2-1]
+        {
+            int begin1 = i, end1 = (i + gap - 1);
+            int begin2 = (i + gap), end2 = (i + gap * 2 - 1);
+            int index = 0;
+            // end1越界，或者 begin2越界
+            if (end1 > n || begin2 > n)
+            {
+                break;
+            }
+            // end2越界
+            if (end2 > n)
+            {
+                end2 = n - 1;
+            }
+            while (begin1 <= end1 && begin2 <= end2)
+            {
+                if (begin1 < begin2)
+                {
+                    tmp[index++] = a[begin1++];
+                }
+                else
+                {
+                    tmp[index++] = a[begin2++];
+                }
+            }
+            while (begin1 <= end1)
+            {
+                tmp[index++] = a[begin1++];
+            }
+            while (begin2 <= end2)
+            {
+                tmp[index++] = a[begin2++];
+            }
+
+            //归并数组数据拷贝回原数组
+            for (int j = i; j <= end2; j++)
+            {
+                a[j] = tmp[j];
+            }
+        }
+        gap *= 2;
+    }
+
+    free(tmp);
+    tmp = NULL;
+}
+
+void CountSort(int *a, int n)
+{
+    int max = a[0], min = a[0];
+    for (int i = 1; i < n; i++)
+    {
+        if (a[i] > max)
+        {
+            max = a[i];
+        }
+        if (a[i] < min)
+        {
+            min = a[i];
+        }
+    }
+    int range = max - min + 1;
+    int *count = (int *)malloc(sizeof(int) * range);
+    memset(count, 0, sizeof(int) * range);
+    if (!count)
+    {
+        perror(malloc);
+        exit(-1);
+    }
+    //统计次数
+    for (int i = 0; i < n; i++)
+    {
+        count[a[i] - min]++;
+    }
+    //根据次数进行排序
+    int j = 0;
+    for (int i = 0; i < range; i++)
+    {
+        while (count[i]--)
+        {
+            a[j++] = i + min;
+        }
+    }
+}

@@ -26,7 +26,7 @@ L-->M(归并排序)
 
 ### 编写思路
 
-将x插入到[0,end]的有序区间的单趟排序。
+2将x插入到[0,end]的有序区间的单趟排序。
 
 ```c
 //假设排序都为升序
@@ -958,4 +958,329 @@ void MergeSort(int *a, int n)
     tmp = NULL;
 }
 ```
+
+```c
+void _MergeSort(int *a, int left, int right, int *tmp)
+{
+    if (left >= right)
+    {
+        return;
+    }
+    int mid = left + (right - left) / 2;
+    // [left, mid] [mid+1, right]
+    _MergeSort(a, left, mid, tmp);
+    _MergeSort(a, mid + 1, right, tmp);
+    int begin1 = left, end1 = mid;
+    int begin2 = mid + 1, end2 = right;
+    int tmpleft = left;
+    while (begin1 <= end1 && begin2 <= end2)
+    {
+        if (a[begin1] < a[begin2])
+        {
+            tmp[tmpleft++] = a[begin1++];
+        }
+        else
+        {
+            tmp[tmpleft++] = a[begin2++];
+        }
+    }
+    while (begin1 <= end1)
+    {
+        tmp[tmpleft++] = a[begin1++];
+    }
+    while (begin2 <= end2)
+    {
+        tmp[tmpleft++] = a[begin2++];
+    }
+    // tmp 数组拷贝回a
+    for (int j = left; j <= right; j++)
+    {
+        a[j] = tmp[j];
+    }
+}
+```
+
+#### 非递归归并排序
+
+非递归归并排序的编写思路就是先把数组一一归并，再两个两个归并，再四个，再八个。。直到gap>=数组元素个数n
+
+主要的难点在于边界的控制，因为在这里非常容易越界访问。如果我们这么写：
+
+```c
+    while (gap < n)
+    {
+        for (int i = 0; i < n; i += 2 * gap) // [i ~ i+gap-1] [i+gap ~ i+gap*2-1]
+        {
+            int begin1 = i, end1 = (i + gap - 1);
+            int begin2 = i + gap, end2 = (i + gap * 2 - 1);
+            int index = 0;
+            while (begin1 <= end1 && begin2 <= end2)
+            {
+                if (begin1 < begin2)
+                {
+                    tmp[index++] = a[begin1++];
+                }
+                else
+                {
+                    tmp[index++] = a[begin2++];
+                }
+            }
+```
+
+这样会造成如果数组为奇数的时候会造成：
+
+- end1越界，此时end2和begin2也都越界了。
+- 只有end2越界。
+- end2和begin2越界，分出来的数组根本不存在。
+
+我们需要修正这些边界让其不再越界。
+
+```c
+void MergeSortNonR(int *a, int n)
+{
+    int *tmp = (int *)malloc(sizeof(int) * n);
+    if (tmp == NULL)
+    {
+        perror(malloc);
+        exit(-1);
+    }
+    int gap = 1;
+    while (gap < n)
+    {
+        for (int i = 0; i < n; i += 2 * gap) // [i ~ i+gap-1] [i+gap ~ i+gap*2-1]
+        {
+            int begin1 = i, end1 = (i + gap - 1) < n ? (i + gap - 1) : (n - 1);
+            int begin2 = (i + gap) < n ? (i + gap) : (n - 1), end2 = (i + gap * 2 - 1) < n ? (i + gap * 2 - 1) : (n - 1);
+            int index = 0;
+            // end1越界，begin2，end2不存在
+            // begin2,end2 不存在
+
+            while (begin1 <= end1 && begin2 <= end2)
+            {
+                if (begin1 < begin2)
+                {
+                    tmp[index++] = a[begin1++];
+                }
+                else
+                {
+                    tmp[index++] = a[begin2++];
+                }
+            }
+            while (begin1 <= end1)
+            {
+                tmp[index++] = a[begin1++];
+            }
+            while (begin2 <= end2)
+            {
+                //如果是[8,8] [8,8]的情况，即begin1 = end1 , begin2 = end2 
+                //index会越界加条件判断
+                if(index >= end2)
+                    break;
+                tmp[index++] = a[begin2++];
+            }
+        }
+        gap *= 2;
+    }
+    //归并数组数据拷贝回原数组
+    for (int j = 0; j <= n - 1; j++)
+    {
+        a[j] = tmp[j];
+    }
+    free(tmp);
+    tmp = NULL;
+}
+```
+
+处理比较麻烦的原因是：tmp数组的拷贝在循环外面。如果在里面：
+
+```c
+void MergeSortNonR2(int *a, int n)
+{
+    int *tmp = (int *)malloc(sizeof(int) * n);
+    if (tmp == NULL)
+    {
+        perror(malloc);
+        exit(-1);
+    }
+    int gap = 1;
+    while (gap < n)
+    {
+        for (int i = 0; i < n; i += 2 * gap) // [i ~ i+gap-1] [i+gap ~ i+gap*2-1]
+        {
+            int begin1 = i, end1 = (i + gap - 1);
+            int begin2 = (i + gap), end2 = (i + gap * 2 - 1);
+            int index = 0;
+            // end1越界，或者 begin2越界
+            if(end1>n ||begin2 > n)
+            {
+                break;
+            }
+            // end2越界
+            if(end2>n)
+            {
+                end2 = n - 1;
+            }
+            while (begin1 <= end1 && begin2 <= end2)
+            {
+                if (begin1 < begin2)
+                {
+                    tmp[index++] = a[begin1++];
+                }
+                else
+                {
+                    tmp[index++] = a[begin2++];
+                }
+            }
+            while (begin1 <= end1)
+            {
+                tmp[index++] = a[begin1++];
+            }
+            while (begin2 <= end2)
+            {
+                tmp[index++] = a[begin2++];
+            }
+
+            //归并数组数据拷贝回原数组
+            for (int j = i; j <= end2; j++)
+            {
+                a[j] = tmp[j];
+            }
+        }
+        gap *= 2;
+
+    }
+
+    free(tmp);
+    tmp = NULL;
+}
+```
+
+## 计数排序
+
+不去进行数据的比较，而是统计数据出现的次数。
+
+创立一个数组然后遍历原数组，将原数组中每个数出现的次数分别放在新创立的数组对应的位置上。时间复杂度为O(N+range)  其中range是原数组数据的范围。
+
+但是如果有如下一组数组：
+
+```mermaid
+graph LR
+1000-->1200-->1500-->1800-->2100-->2200
+```
+
+如果我们按照原来那种思路，新的空间需要开辟0～2200个空间，优化一下，我们可以开辟 max - min + 1个空间，这样会节省空间。同时我们发现，这样新数组的下标就不对应着原数组的元素值了，这时候我们需要建立相对映射。新数组下标i，原数组元素大小为x， i = x - min。同样，我们如果要把新数组对应回原数组，我们应该用 i + min 得到 x。
+
+计数排序适合**数据范围比较集中**的数组。
+
+```c
+void CountSort(int*a,int n)
+{
+    int max=a[0], min=a[0];
+    for (int i = 1; i < n;i++)
+    {
+        if(a[i]>max)
+        {
+            max = a[i];
+        }
+        if(a[i]<min)
+        {
+            min = a[i];
+        }
+    }
+    int range = max - min + 1;
+    int *count = (int *)malloc(sizeof(int) * range);
+    memset(count, 0, sizeof(int) * range);
+    if (!count)
+    {
+        perror(malloc);
+        exit(-1);
+    }
+    //统计次数
+    for (int i = 0; i < n;i++)
+    {
+        count[a[i] - min]++;
+    }
+    //根据次数进行排序
+    int j = 0;
+    for (int i = 0; i < range; i++)
+    {
+        while(count[i]--)
+        {
+            a[j++] = i + min;
+        }
+    }
+}
+```
+
+### 时间复杂度
+
+计数排序的时间复杂度为 ***O(Max(N, Range))***
+
+空间复杂度为O(range)
+
+适合范围比较集中的整数数组。
+
+范围较大或者是浮点数、或者有正有负的都不适合计数排序。
+
+### 全为负数的计数排序
+
+我们需要把负数强制类型转换成正的值，用
+
+```c
+int i = -1;
+unsigned int j = (unsigned int)i;
+```
+
+这样就按照正值去排序了，随后因为它是无符号的int，输出的时候用有符号int输出，还是会输出负值。
+
+但是！！！！ 如果有正有负绝对不要用计数排序了，因为负数和正数的unsigned int 相差非常大。
+
+## 排序总结
+
+### O(N^2^)排序
+
+直接插入、选择排序、冒泡排序
+
+```mermaid
+graph TD
+A(直接插入)-->E(直接插入最优)
+B(选择排序)-->E
+C(冒泡排序)-->E
+```
+
+### O(N*log~2~N)排序
+
+希尔排序、堆排序、快排、归并排序
+
+```mermaid
+graph TD
+A(希尔排序)-->E(快排最优)
+B(堆排序)-->E
+C(快排)-->E
+D(归并排序)-->E
+```
+
+排序最首先就是掌握排序的思想，其次是所有的代码包括递归和非递归，必须能手搓出来。
+
+## 稳定性
+
+数组中相同的值，在排序以后相对位置是否变化。可能会变的就是不稳定。能保证不变就是稳定。
+
+比如交卷排序，分数线痛，先交卷的排名在前，我们必须用稳定的排序，否则不能契合先交卷排名有限的特点。
+
+```mermaid
+graph LR
+A[插入排序]-->B[直接插入排序]-->稳定
+A-->C[希尔排序]-->不稳定
+D[选择排序]-->直接选择排序-->不稳定
+D-->堆排序-->不稳定
+E(交换排序)-->冒泡排序-->稳定
+E-->快排-->不稳定
+归并排序--->稳定
+计数排序--->不稳定
+```
+
+希尔排序，相同的值可能预排到不同的组里面。
+
+选择排序的反例： 5 1 4 9 5 0 7
 
