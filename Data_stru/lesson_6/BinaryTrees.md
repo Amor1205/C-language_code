@@ -7,13 +7,18 @@
 树是一种**非线性**的数据结构，它是由n （n>=0）个有限结点组成一个具有层次关系的集合。***把它叫做树是因为它看起来像一棵倒挂的树，也就是说它是根朝上，而叶朝下的。***
 
 - 有一个特殊的结点，称为**根结点**，根节点**没有前驱结点**
-- 任何树都会被分成根和子树。子树可能为多个子树或者空树。
-- 除根节点外，其余结点被分成M(M>0)个**互不相交**的集合T1、T2、.、Tm，其中每一个集合Ti(1<= i <= m)又是一棵结构与树类似的子树。每棵子树的根结点有且只有一个前驱，可以有0个或多个后继。（子树不相交）
-- 除了根节点外，每个节点有且仅有一个交节点。
-- 一颗N个节点的树有N-1条边。
-- 因此，***树是递归定义的***。![CleanShot 2022-10-04 at 22.16.58@2x](/Users/amor/Library/Application Support/CleanShot/media/media_K28ZyYC5uX/CleanShot 2022-10-04 at 22.16.58@2x.png)
 
-### 树的相关概念
+- 任何树都会被分成根和子树。子树可能为多个子树或者空树。
+
+- 除根节点外，其余结点被分成M(M>0)个**互不相交**的集合T1、T2、.、Tm，其中每一个集合Ti(1<= i <= m)又是一棵结构与树类似的子树。每棵子树的根结点有且只有一个前驱，可以有0个或多个后继。（子树不相交）
+
+- 除了根节点外，每个节点有且仅有一个交节点。
+
+- 一颗N个节点的树有N-1条边。
+
+- 因此，***树是递归定义的***。
+
+  树的相关概念
 
 > - 节点的度：一个节点包含的子树的个数
 > - 叶节点或终端节点：度为0的节点称为叶节点，又叫终端节点。
@@ -451,7 +456,7 @@ void PrintTopK(int *a, int n, int k)
 
 换个思路：数组是可以被看作完全二叉树的。更进一步，我们可以
 
-把它构建成堆（排升序，建小堆）。有两种方法：
+把它构建成堆（排升序，如果建立小堆***(后面被证明此路不通)***）。有两种方法：
 
 - 把数组从a[0]开始，视作一个一个加入进来的，只不过需要向上调整，所以我们写一个循环让每个数加进来的同时向上调整。
 
@@ -482,7 +487,7 @@ void PrintTopK(int *a, int n, int k)
 
 1. 建***大堆*** (只需要让AdjustDown函数改变一下大小关系即可)，选出最大的数。
 2. 最大的数跟最后一个数***交换。***得到最小的数
-3. *如何选出次小的数呢？* 把最后一个数不看做堆里面的数，进行向下调整，就可以选出次小的数，以此类推重复上面的过程。
+3. *如何选出次大的数呢？* 把最后一个数不看做堆里面的数，进行向下调整，就可以选出次大的数，以此类推重复上面的过程。
 
 只需要调整高度次，也就是时间复杂度为N*logN(N为堆中元素个数)
 
@@ -493,7 +498,7 @@ void PrintTopK(int *a, int n, int k)
     while(pos--)
     {
         HeapSwap(a+0, a + pos);
-        //选出次小的数
+        //选出次大的数
         AdjustDown(a, pos, 0);
     }
 ```
@@ -539,7 +544,11 @@ void HeapSort(int *a, int n)
 
 T(n) = n - log~2~(n+1) 约为n。
 
-## 二叉树的链式结构及实现
+---
+
+
+
+# 二叉树的链式结构及实现
 
 普通二叉树的增删查改没有什么价值，因为用来存放数据太复杂了。它的价值在于
 
@@ -551,13 +560,13 @@ T(n) = n - log~2~(n+1) 约为n。
 
 学习这个是为了后面学习更有用的树打基础，同时很多oj题目结构普通二叉树。
 
-### 前序、中序以及后序遍历
+## 前序、中序以及后序遍历
 
 学习二叉树的结构，最简单的方式就是遍历。二叉树遍历 (Traversal)时按照某种待定的规则，依次堆二叉树中的节点进行相应的操作，并且每个节点只操作一次。
 
 二叉树可以分为根、左子树和右子树。走到空就中止。
 
-二叉树的遍历分为：前序/中序/后序的递归结构遍历。![CleanShot 2022-10-08 at 23.22.32@2x](/Users/amor/Library/Application Support/CleanShot/media/media_sQfEi8qCFO/CleanShot 2022-10-08 at 23.22.32@2x.png)
+二叉树的遍历分为：前序/中序/后序的递归结构遍历。![CleanShot 2022-10-10 at 11.40.29@2x](/Users/amor/Library/Application Support/CleanShot/media/media_DBgmPOl91Z/CleanShot 2022-10-10 at 11.40.29@2x.png)
 
 1. 前序遍历（preorder Traversal） -- 访问跟节点的操作发生在遍历左右子树之前。
 
@@ -637,6 +646,8 @@ void PostOrder(BTNode *root)
 }
 ```
 
+## 二叉树oj题目
+
 ### 求二叉树节点的个数
 
 如果我们用一遍遍历。在此我们用前序遍历写一下。
@@ -680,10 +691,415 @@ void BinaryTreeSize(BTNode *root, int *pn)
 
 调用多次也不会出现问题。还有一种方式，返回值可以帮助我们解决：
 
+```c
+int BinaryTreeSize(BTNode *root)
+{
+    return root == NULL ? 0 : BinaryTreeSize(root->left) + BinaryTreeSize(root->right) + 1;
+}
+```
 
+### 求叶子节点的个数
 
+```c
+//求叶子节点的个数
+int BinaryTreeLeafSize(BTNode* root)
+{
+    if(!root)
+        return 0;
+    if(root->left == NULL && root->right == NULL)
+        return 1;
 
+    return BinaryTreeLeafSize(root->left) + BinaryTreeLeafSize(root->right);
+}
+```
+
+### 求第k层的节点个数
+
+求树的第四层，可以求它的左子树的第三层加上右子树的第三层。也就是：
+
+```c
+ BinaryTreeLevelKSize(root,k) =  BinaryTreeLevelKSize(root->left,k-1) +  BinaryTreeLevelKSize(root->right,k-1); 
+```
+
+所以我们又可以进行递归了。
+
+```c
+int BinaryTreeLevelKSize(BTNode* root,int k)
+{
+    assert(k > 0);
+    if(!root)
+        return 0;
+    if(k==1)
+        return 1;
+    //若root不为空，k也不等于1，那么说明第k层还在root的子树里面
+    //转换成求左右子树的第k-1层的节点数量
+    return BinaryTreeLevelKSize(root->left, k - 1) + BinaryTreeLevelKSize(root->right, k - 1);
+}
+```
+
+### 二叉树的深度/高度
+
+我们一般默认空树的高度是0。
+
+都采用分置的思想，就是递归的思想，我们想求当前树的高度，就是去求左子树高度和右子树高度里取较大值然后加1。
+
+```c
+int BinaryTreeDepth(BTNode *root)
+{
+    if(!root)
+        return 0;
+    //求较大值加1
+
+    return 1 + (BinaryTreeDepth(root->left) > BinaryTreeDepth(root->right) ? BinaryTreeDepth(root->left) : BinaryTreeDepth(root->right));
+}
+```
+
+但是这并非最优解（严谨说会造成严重的浪费），如果深度较大会导致溢出。因为每次都需要重复计算左子树和右子树的深度。我们如果先保存一下，就会防止浪费。
+
+```c
+int BinaryTreeDepth(BTNode *root)
+{
+    //空树给0
+    if(!root)
+        return 0;
+    int leftDepth = BinaryTreeDepth(root->left);
+    int rightDepth = BinaryTreeDepth(root->right);
+    //求较大值加1
+    return 1 + (leftDepth > rightDepth ? leftDepth: rightDepth);
+}
+```
+
+### 二叉树查找值为x的节点
+
+在二叉树里面都必须要先判断root的空情况，如果不空， 再去进行判断。如果root->data存在而且不等于x，我们需要去左子树和右子树里面去找，如果左子树返回值不为空，那么说明找到了，直接返回这个左子树里面查找的返回值就可以。然后再进行右子树的查找。如果都没找到，返回空即可。
+
+```c
+BTNode* BinaryTreeFind(BTNode* root,BTDataType x)
+{
+    if(!root)
+        return NULL;
+    if (root->data == x)
+        return root;
+    BTNode *leftNode = BinaryTreeFind(root->left, x);
+    if (leftNode)
+        return leftNode;
+    BTNode *rightNode = BinaryTreeFind(root->right, x);
+    if(rightNode)
+        return rightNode;
+    return NULL;
+}
+```
+
+### 单值二叉树
+
+如果二叉树的每个节点都具有相同的值，那么该二叉树就是单值二叉树。只有给定的树是单值二叉树时，才返回true，否则false。
+
+```c
+bool isUnivalTree(BTNode* root)
+{
+    if(!root)
+        return true;
+    if(root->left && root->left->data != root->data)
+        return false;
+    if(root->rigth && root->right->data != root->data)
+        return false;
+    return isUnivalTree(root->left) && isUnivalTree(root->right);
+}
+```
+
+### 二叉树前序遍历并且把遍历过的值存储到数组中
+
+数组a是我们malloc出来的，但是并不知道malloc多少内存，所以我们先写一个函数来计算树的节点个数。
+
+```c
+int TreeSize(BTNode* root)
+{
+    return root == NULL ? 0 : TreeSize(root->left) + TreeSize(root->right) + 1;
+}
+```
+
+要求前序遍历并储存值，我们可以先写一个前序遍历。其中pi是i的地址，i是数组的下标，用来将值储存在数组中。
+
+```c
+int* _preorderTraversal(BTNode* root,int* a,int*pi)
+{
+    if(!root)
+    {
+        return;
+    }
+    a[(*pi)++] = root->data;
+    _preorderTraversal(root->left,a,pi);
+    _preorderTraversal(root->right, a,pi);
+}
+```
+
+接下来我们只需要在要求的函数内部调用这个函数即可。注意一点，returnSize在我们的编写代码过程中并未用到，这是一个输出型参数，是因为我们在写OJ题目中，提交代码之后，服务器并不知道到底return的数组的size是多少，我们应该告诉服务器是多少。也就是在结束代码之前将returnSize的值修改成正确值。
+
+```c
+int* preorderTraversal(BTNode* root,int* returnSize)
+{
+    int size = TreeSize(root);
+    int *a = (int *)malloc(sizeof(int) * size);
+    //应该检查，oj题目可以不用。
+    int i = 0;
+    _preorderTraversal(root, a, &i);
+    *returnSize = size;
+    return a;
+}
+```
+
+在这里，很多小伙伴会犯这样的错误，写成如下的形式
+
+```c
+int* _preorderTraversal(BTNode* root,int* a,int i)
+{
+    if(!root)
+    {
+        return;
+    }
+    a[(i)++] = root->data;
+    _preorderTraversal(root->left,a,i);
+    _preorderTraversal(root->right, a,i);
+}
+```
+
+注意，这种情况下，结合我们之前学习的栈帧的知识，可以知道，每次递归都会创建新的函数栈帧，i是在新的函数栈帧中对于上一层递归中i的临时拷贝，出栈就会销毁。所以这个i并不能传递出本次递归，也就是对i的++是无效的。我们在这里应该传址调用，才能准确修改i的值。
+
+### 相同的树
+
+给两个二叉树的根节点p和q，编写一个函数来检查这两棵树是否相同。如果两棵二叉树的每个节点都相同，则视为相同。要求：
+
+- 形状相同
+- 值相同
+
+如果解题，我们一般先考虑根相等与否，如果根相等，再去比较左子树相不相等，再去比较右子树相不相等。
+
+```c
+bool isSameTree(BTNode* p,BTNode*q)
+{
+    if(!p && !q)
+        return true;
+    if(!p || !q)
+        return false;
+    if (p->data != q->data)
+        return false;
+    //&&是走完左边如果相等再走右边，如果左边值为0，则右边根本就不需要判断了。
+    return isSameTree(p->left, q->left) && isSameTree(p->right, q->right);
+}
+```
+
+判断他的时间复杂度。考虑他的思想，每个数都比较一遍，这就是经典的O(N)。
+
+### 对称二叉树/镜像二叉树
+
+给定一个二叉树，检查它是否是镜像对称的。
+
+可以这样做：先比较根，根都不相等那就必然不镜像对称。然后拿左的左树和右的右树比，拿左的右树根右的左树去比。
+
+所以我们可以考虑一个子函数，用来比较根的左树和右树的镜像情况。先考虑好，传过去两个节点有以下几种情况：
+
+- 两个节点都为空，符合镜像关系
+- 两个节点有一个为空，不符合镜像关系
+- 两个节点都不为空，而且不等，不符合镜像关系
+- 两个节点都不为空，而且相等，符合镜像关系，我们需要继续递归。
+
+```c
+bool _isSymmertric(BTNode *root1,BTNode* root2)
+{
+    if(!root1 && !root2)
+        return true;
+    if(!root1 || !root2)
+        return false;
+    if(root1->data != root2->data)
+        return false;
+    return _isSymmertric(root1->left, root2->right) && _isSymmertric(root1->right, root2->left);
+}
+```
+
+写好子函数之后，主函数就好写了。
+
+```c
+bool isSymmertric(BTNode *root)
+{
+    if(!root)
+        return true;
+    return _isSymmertric(root->left, root->right);
+}
+```
+
+### 另一棵树的子树
+
+给你两棵二叉树root和subRoot。检验root中是否包含和subRoot具有相同结构和节点值的子树。如果存在，返回true；否则，返回false。
+
+二叉树tree的一棵子树包括trree的某个节点和这个节点的所有后代节点。tree也可以看作它自身的一棵子树。
+
+思路就是拿root的每一棵子树来比较subroot。如何拿每一棵子树？遍历
+
+```c
+bool isSubTree(BTNode* root,BTNode* subRoot)
+{
+    if(!root)
+        return false;
+    if(isSameTree(root,subRoot))
+    {
+        return ture;
+    }
+    return isSubTree(root->left, subRoot) || isSubTree(root->right, subRoot);
+}
+```
+
+最好情况下的时间复杂度是O(N)查找一个就找到了，因为isSameTree需要遍历，为N。
+
+最坏情况下的时间复杂度是O(N^2^)，每个子树都比但是都最后没有通过。
+
+### 层序遍历
+
+把二叉树按照一层从左到右的顺序进行遍历。
+
+思路就是用队列，先入根，出根的时候入根的左右孩子，左孩子出的时候入它的左右孩子。直到队列为空停止，遍历结束。
+
+```c
+void BinaryTreeLevelOrder(BTNode *root)
+{
+    if (!root)
+        return;
+    Queue q;
+    QueueInit(&q);
+    //队列得放结构体指针才可以。否则找不到左右孩子
+    while (QueueEmpty(&q))
+    {
+        BTNode *front = QueueFront(&q);
+        QueuePop(&q);
+        printf("%d ", front->data);
+        if (front->left)
+        {
+            QueuePush(&q, front->left);
+        }
+        if (front->right)
+        {
+            QueuePush(&q, front->right);
+        }
+    }
+    printf("\n");
+}
+```
+
+这样我们就写好了层序遍历。用层序遍历我们就可以很好的判断二叉树是否为完全二叉树了。因为完全二叉树是除最后一层外全满，最后一排可能不满而且必须连续。我们层序遍历来判断即可。
+
+### 判断是否为完全二叉树
+
+之前的层序遍历是为空就不进了，现在我们空也进去，空出来的时候判断队列是否为空，队列为空则是，队列不为空则说明不连续，非完全二叉树。
+
+```c
+int BinaryTreeComplete(BTNode* root)
+{
+        if (!root)
+            return;
+        Queue q;
+        QueueInit(&q);
+        //队列得放结构体指针才可以。否则找不到左右孩子
+        while (QueueEmpty(&q))
+        {
+            BTNode *front = QueueFront(&q);
+            QueuePop(&q);
+            if(!front)
+            {
+                break;
+            }
+            else
+            {
+                QueuePush(&q, front->left);
+                QueuePush(&q, front->right);
+            }
+        }
+        BTNode* front = QueueFront(&q);
+        // while (!front)
+        // {
+        //     //
+        //     QueuePop(&q);
+        //     front = QueueFront(&q);
+        // }
+        // if (front)
+        //     {QueueDestroy(&q);
+        //     return 0;}
+        // return 1;
+
+        while(!QueueEmpty(&q))
+        {
+            BTNode *front = QueueFront(&q);
+            QueuePop(&q);
+
+            if(front)
+            {
+                QueueDestroy(&q);
+                return 0;
+            }
+        }
+        QueueDestroy(&q);
+        return 1;
+} 
+```
+
+### 二叉树遍历
+
+编写一个横序，读入用户输入的一串先序遍历字符串，根据此字符串建立一个二叉树（以指针方式存储）。例如如下的先序遍历字符串：ABC##DE#G##F### 其中#表示的是空格，空格字符代表空树。建立起此二叉树以后，再对二叉树进行中序遍历，输出遍历结果。
+
+IO型题目：
+
+```c
+#include<stdio.h>
+#include<stdlib.h>
+struct TreeNode
+{
+		struct TreeNode* left;
+		struct TreeNode* right;
+		char val;
+}
+strcut TreeNode* CreateTree(char* str, int* pi)
+{
+		if(str[*pi]=='#')
+			{return NULL;
+			(*pi)++;}
+		struct TreeNode* root = malloc(sizeof(struct TreeNode));
+		root->val = str[(*pi)++];
+		root->left = CreateTree(str,pi);
+		root->right = CreateTree(str,pi);
+}
+void InOrder(struct TreeNode* root)
+{
+		if(!root)
+				return;
+		InOrder(root->left);
+		printf("%c ",root->left);
+		InOrder(root->right);
+}
+int main()
+{
+    char str[100];
+    scanf("%s",str);
+  //多行输入
+  //while(scanf("%s",str)!=EOF)
+    int i = 0;
+
+    struct TreeNode* root = CreateTree(str,&i);
+    InOrder(root);
+    return 0;
+}
+```
+
+### 二叉树销毁
+
+传二级指针可以直接置空，传一级指针也可以，只需要让调用者置空。就像用free一样。
+
+```c
+void BinaryTreeDestroy(BTNode* root)
+{
+    if(!root)
+        return;
+    BinaryTreeDestroy(root->left);
+    BinaryTreeDestroy(root->left);
+    free(root);
+}
+```
 
 ## 二叉树的顺序结构及实现
-
-## 
