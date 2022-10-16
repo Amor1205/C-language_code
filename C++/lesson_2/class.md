@@ -758,9 +758,265 @@ int main()
 
 为了提高程序效率，一般对象传参时，尽量使用引用类型，返回时根据实际场景，能用引用尽量使用引用。
 
+### 赋值重载
+
+学习赋值重载，我们要先学习运算符重载，学完运算符重载之后，赋值重载只是这里面的一种情况。所以推荐先看下一个章节（就在下文）的内容，随后返回来看赋值重载。
+
+赋值运算符重载格式：
+
+- 参数类型：const Date&，传引用可以提高传参效率
+- 返回值类型：Date&，返回引用可以提高返回的效率，有返回值目的是为了支持连续赋值。
+- 检测是否自己给自己赋值
+- 返回*this：要复合连续赋值的含义
+
+```c++
+    //返回类型为void的赋值重载：由于返回值是void，所以只能赋值一次，不能像int一样可以连续赋值，如x=y=z
+    // void operator=(const Date& d)
+    // {
+    //     _year = d._year;
+    //     _month = d._month;
+    //     _date = d._date;
+    // }
+    //连续赋值重载
+    Date& operator=(const Date& d)
+    {
+            _year = d._year;
+            _month = d._month;
+            _date = d._date;
+            //并不是返回this，因为this是个指针
+            //返回*this
+            //直接传值返回会进行一次拷贝构造
+            //由于*this是全局的，出作用域不会销毁。
+            //我们可以传引用返回。
+            return *this;
+    }
+
+    //自己给自己赋值的优化
+    Date &operator=(const Date &d)
+    {
+      	//自己给自己赋值就不用处理了，可以跳过。
+        if(this!=&d)
+        {
+            _year = d._year;
+            _month = d._month;
+            _date = d._date;
+        }
+
+        return *this;
+    }
+```
+
+```c++
+int main()
+{
+
+    Date d1(2022, 10, 16);
+    Date d3(2000, 12, 05);
+    //一个已经存在的对象初始化一个马上创建实例化的对象
+    Date d2(d1); //拷贝构造
+
+    //两个已经存在的对象之间进行赋值拷贝
+    d3 = d1;//赋值重载
+    d3.operator=(d1);
+    return 0;
+}
+```
+
+> **赋值运算符只能重载成类的成员函数不能重载成全局函数**。
+>
+> 原因：赋值运算符如果不显式实现，编译器会生成一个默认的。此时用户再在类外自己实现一个全局的赋值运算符重载，就和编译器在类中生成的默认赋值运算符重载冲突了，故赋值运算符重载只能是类的成员函数。
+>
+> 编译器默认生成的赋值重载，跟拷贝构造做的事情完全类似：
+>
+> 1. 内置类型成员变量，会完成字节序值的拷贝 -- 浅拷贝
+> 2. 自定义类型成员变量，会调用它的*operator=*
+>
+> 与拷贝构造相同，***类中如果没有涉及资源申请时，赋值重载函数是否写都可以；一旦涉及到资源申请时，则赋值重载函数是一定要写的，否则就是浅拷贝。***
+
+区分拷贝构造和赋值重载：
+
+```c++
+Date d1(2022,10,16);
+Date d2 = d1;
+```
+
+这是拷贝构造！！二者本质的区别在于：
+
+- 一个已经存在的对象初始化一个马上创建实例化的对象是拷贝构造
+- 两个已经存在的对象之间进行赋值拷贝
+
 ## 运算符重载
+
+默认情况下C++是不支持自定义类型对象使用运算符的。
 
 **C++为了增强代码的可读性引入了运算符重载，运算符重载是具有特殊函数名的函数，**也具有其返回值类型，函数名字以及参数列表，其返回值类型与参数列表与普通的函数类似。
 
 函数名字为：关键字**operator后面接需要重载的运算符符号**。
 函数原型：**返回值类型 operator操作符（参数列表）**
+
+**注意：**
+
+- 不能通过连接其他符号来创建新的操作符：比如operator@
+- 重载操作符必须有一个类类型参数
+- 用于内置类型的运算符，其含义不能改变，例如：内置的整型+，不能改变其含义
+- 作为类成员函数重载时，其形参看起来比操作数数目少1，因为成员函数的第一个参数为隐藏的this
+- **(.*)   (::)   (sizeof)   (?:)   (.)**    注意以上5个运算符不能重载。这个经常在笔试选择题中出
+  现。
+
+### 成员变量私有导致的访问问题
+
+我们还是以Date类来进行说明，写一个日期的大于运算符
+
+```c++
+//函数名就是operator操作符
+//返回类型要看操作符运算后返回的值是什么
+//操作符有几个操作时就有几个参数
+bool operator>(const Date &d1, const Date &d2)
+{
+    if (d1._year > d2._year)
+    {
+        return true;
+    }
+    else if (d1._year == d2._year && d1.month > d2._month)
+    {
+        return true;
+    }
+    else if (d1._year == d2._year && d1.month == d2._month && d1.date > d2.date)
+    {
+        return true;
+    }
+    return false;
+}
+```
+
+**但是这面临着一个问题：成员变量的私有导致的无法访问。**
+
+解决它有以下几种方法：
+
+- 成员变量公有化，变private为public。
+- 类内 设定GetYear，GetMonth, GetDate函数，调用函数解决。
+- 我们把这个操作符重载函数拿到类内。
+
+我们使用法3，
+
+```c++
+class Date
+{
+public:
+    Date(int year = 0, int month = 1, int date = 1)
+    {
+        _year = year;
+        _month = month;
+        _date = date;
+    }
+    ~Date()
+    {
+    } // Date类没有资源需要清理，所以Date不实现析构函数都是可以的。
+    Date(Date &d)
+    {
+        _year = d._year;
+        _month = d._month;
+        _date = d._date;
+    }
+    bool operator>(const Date &d1, const Date &d2)
+    {
+        if (d1._year > d2._year)
+        {
+            return true;
+        }
+        else if (d1._year == d2._year && d1.month > d2._month)
+        {
+            return true;
+        }
+        else if (d1._year == d2._year && d1.month == d2._month && d1.date > d2.date)
+        {
+            return true;
+        }
+        return false;
+    }
+
+private:
+    int _year;
+    int _month;
+    int _date;
+};
+```
+
+<img src="/Users/amor/Library/Application Support/CleanShot/media/media_9KkX2vI4c4/CleanShot 2022-10-16 at 14.48.59@2x.png" alt="CleanShot 2022-10-16 at 14.48.59@2x" style="zoom:50%;" />
+
+会发现报错显示参数太多。这是因为隐藏的this指针就算作了一个参数，从而导致实际上有三个参数。这时候d1和this是重复的，我们可以略去d1参数。如下写：
+
+```c++
+class Date
+{
+public:
+    Date(int year = 0, int month = 1, int date = 1)
+    {
+        _year = year;
+        _month = month;
+        _date = date;
+    }
+    ~Date()
+    {
+    } // Date类没有资源需要清理，所以Date不实现析构函数都是可以的。
+    Date(Date &d)
+    {
+        _year = d._year;
+        _month = d._month;
+        _date = d._date;
+    }
+    bool operator>(const Date &d)
+    {
+        if (_year > d._year)
+        {
+            return true;
+        }
+        else if (_year == d._year && _month > d._month)
+        {
+            return true;
+        }
+        else if (_year == d._year && _month == d._month && date > d._date)
+        {
+            return true;
+        }
+        return false;
+    }
+
+private:
+    int _year;
+    int _month;
+    int _date;
+};
+```
+
+
+
+### 重载运算符的调用
+
+1. 在类外定义的运算符：
+
+```c++
+int main()
+{
+    Date d1(2022, 10, 16);
+    Date d2(2022,12,16);
+  	//调用
+    cout << (d1 > d2) << endl;//必须加括号！流插入操作符优先级更高
+    cout << operator>(d1, d2) << endl;
+    return 0;
+}
+```
+
+调用运算符的两种方式，一种是直接使用运算符，一种是调用函数使用操作符，如上line6, line7。
+
+2. 在类内定义的运算符：
+
+```c++
+ (d1 > d2);
+ d1.operator>(d2);
+```
+
+一般用line1。
+
+3. 如果全局和成员中都进行定义，定义了相同的运算符重载函数，会优先在成员中查找。但是正常情况下是写在成员里（本来写在成员里就是规避在类外写而成员变量私有的问题。）
+

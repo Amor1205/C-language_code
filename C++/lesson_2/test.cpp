@@ -184,7 +184,7 @@ public:
     Stack(size_t capacity = 4)
     {
         _a = (int *)malloc(sizeof(int) * capacity);
-        if(_a == nullptr)
+        if (_a == nullptr)
         {
             perror("malloc");
             exit(-1);
@@ -204,7 +204,6 @@ private:
     size_t _capacity;
     size_t _top;
 };
-
 
 // int main()
 // {
@@ -229,11 +228,59 @@ public:
     ~Date()
     {
     } // Date类没有资源需要清理，所以Date不实现析构函数都是可以的。
-    Date(Date& d)
+    Date(Date &d)
     {
         _year = d._year;
         _month = d._month;
         _date = d._date;
+    }
+    bool operator>(const Date &d)
+    {
+        if (_year > d._year)
+        {
+            return true;
+        }
+        else if (_year == d._year && _month > d._month)
+        {
+            return true;
+        }
+        else if (_year == d._year && _month == d._month && _date > d._date)
+        {
+            return true;
+        }
+        return false;
+    }
+    //返回类型为void的赋值重载：由于返回值是void，所以只能赋值一次，不能像int一样可以连续赋值，如x=y=z
+    // void operator=(const Date& d)
+    // {
+    //     _year = d._year;
+    //     _month = d._month;
+    //     _date = d._date;
+    // }
+    //连续赋值重载
+    // Date& operator=(const Date& d)
+    // {
+    //         _year = d._year;
+    //         _month = d._month;
+    //         _date = d._date;
+    //         //并不是返回this，因为this是个指针
+    //         //返回*this
+    //         //直接传值返回会进行一次拷贝构造
+    //         //由于*this是全局的，出作用域不会销毁。
+    //         //我们可以传引用返回。
+    //         return *this;
+    // }
+    //自己给自己赋值的优化
+    Date &operator=(const Date &d)
+    {
+        if(this!=&d)
+        {
+            _year = d._year;
+            _month = d._month;
+            _date = d._date;
+        }
+
+        return *this;
     }
 
 private:
@@ -241,10 +288,30 @@ private:
     int _month;
     int _date;
 };
+//函数名就是operator操作符
+//返回类型要看操作符运算后返回的值是什么
+//操作符有几个操作时就有几个参数
+
+//int operator-(const Date &d1, const Date &d2);
+// int main()
+// {
+//     Date d1(2022, 10, 16);
+//     Date d2(2022, 12, 16);
+//     cout << (d1 > d2) << endl;
+//     cout << d1.operator>(d2) << endl;
+//     return 0;
+// }
 
 int main()
 {
-    Date d1(2022,10,16);
-    Date d2(d1);
+
+    Date d1(2022, 10, 16);
+    Date d3(2000, 12, 05);
+    //一个已经存在的对象初始化一个马上创建实例化的对象
+    Date d2(d1); //拷贝构造
+
+    //两个已经存在的对象之间进行赋值拷贝
+    d3 = d1;//赋值重载
+    d3.operator=(d1);
     return 0;
 }
