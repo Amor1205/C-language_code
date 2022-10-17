@@ -3,9 +3,12 @@
 using namespace std;
 class Date
 {
+    friend ostream &operator<<(ostream &out, const Date d);
+    friend istream &operator>>(istream &in, Date &d);
+
 public:
     Date(int year = 0, int month = 1, int date = 1);
-    void Print()const;
+    void Print() const;
     int GetMonthDay(int year, int month) const;
     bool isFairDate(int year, int month, int date) const;
     bool operator>(const Date &d) const;
@@ -28,6 +31,8 @@ public:
     Date &operator--(int); //区分前后置
     int operator-(const Date &d) const;
     void PrintWeekDay() const;
+    Date *operator&();
+    const Date *operator&() const;
 
 private:
     int _year;

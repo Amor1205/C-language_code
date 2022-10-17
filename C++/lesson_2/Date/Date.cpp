@@ -192,6 +192,26 @@ void Date::PrintWeekDay() const
     int count = *this - start;
     cout << weekday[count % 7] << endl;
 }
+Date *Date::operator&()
+{
+    return this;
+}
+const Date *Date::operator&() const
+{
+    return this;
+}
+ostream &operator<<(ostream &out, const Date d)
+{
+    out << d._year << "-" << d._month << "-" << d._date << endl;
+    return out;
+}
+
+istream &operator>>(istream &in, Date &d)
+{
+    in >> d._year >> d._month >> d._date;
+    return in;
+}
+
 //----------------------------------------------------
 void TestDate1()
 {
@@ -238,13 +258,25 @@ void TestDate5()
     //成员函数加const是好的，建议能加const都加上。这样普通对象和const对象都可以调用了。
     //但是如果要修改成员变量的函数不能加const。
 }
+void TestDate6()
+{
+    Date d1(2000, 12, 05);
+    Date d2(1999, 12, 17);
+    Date d3(2022, 10, 17);
+
+    cout << d1 << d2 << endl;
+    cout << d3 - d1 << endl;
+    cout << d3 - d2 << endl;
+    cout << d2 - d1 << endl;
+}
 int main()
 {
     // TestDate1();
     // TestDate2();
     // TestDate3();
     // TestDate4();
-    TestDate4();
+    // TestDate5();
+    TestDate6();
 
     return 0;
 }

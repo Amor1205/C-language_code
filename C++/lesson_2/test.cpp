@@ -1,6 +1,7 @@
 #include <iostream>
 using namespace std;
-
+// using std::cout;
+// using std::endl;
 // struct Student
 // {
 //     //成员变量
@@ -376,3 +377,109 @@ using namespace std;
 //     return 0;
 // }
 
+class Date
+{
+public:
+    // Date(int year = 0, int month = 1, int day = 1)
+    // {
+    //     _year = year;
+    //     _month = month;
+    //     _day = day;
+    // }
+    //初始化列表
+    Date(int year = 0, int month = 1, int day = 1)
+        : _year(year), _month(month), _day(day)
+    {
+    }
+
+private:
+    int _year = 0;
+    int _month = 1;
+    int _day = 1;
+};
+class A
+{
+public:
+    A(int a = 0)
+        : _a(a)
+    {
+        _scount++;
+    }
+    A(const A &aa)
+        : _a(aa._a)
+    {
+        _scount++;
+    }
+    static int GetSCount()
+    {
+        return _scount;
+    }
+
+private:
+    static int _scount;
+    int _a;
+};
+int A::_scount = 0;
+void f(A a)
+{}
+// int main()
+// {
+//     A a1;
+//     A a2 = 1;
+//     f(a1);
+//     cout << A::GetSCount() << endl;
+//     //非静态成员引用必须与特定对象相对，所以不能使用类调用
+//     cout << a1.GetSCount() << endl;
+//     cout << a2.GetSCount() << endl;
+
+//     return 0;
+// }
+
+class Sum
+{
+    public:
+    Sum()
+    {
+        _ret += _i;
+        ++_i;
+    }
+    static int GetRet()
+    {
+        return _ret;
+    }
+    static void Init()
+    {
+        _i = 1;
+        _ret = 0;
+    }
+
+    private:
+        static int _i;
+        static int _ret;
+};
+int Sum::_i = 1;
+int Sum::_ret = 0;
+class solution
+{
+private:
+    /* data */
+public:
+    int Sum_Solution(int n){
+        Sum::Init();
+        // Sum a[n];//循环n次
+        // return Sum().GetRet() - (n + 1);//用匿名对象调用的，多调用了一次，所以需要-(n+1)
+        //或者这样
+        // Sum a[n - 1];
+        // return Sum().GetRet();
+        //或者不用对象去调用，更优，需要静态函数
+        Sum a[n];
+        return Sum::GetRet();
+    }
+};
+int main()
+{
+    int n;
+    cin >> n;
+    cout << solution().Sum_Solution(n) << endl;
+    return 0;
+}
