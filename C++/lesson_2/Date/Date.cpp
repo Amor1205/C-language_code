@@ -1,5 +1,5 @@
 #include "Date.h"
-int Date::GetMonthDay(int year, int month)
+int Date::GetMonthDay(int year, int month) const
 {
     //改成静态的,否则每次都创建
     static int monthDayArray[13] = {31, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -14,7 +14,7 @@ int Date::GetMonthDay(int year, int month)
     }
     return day;
 }
-bool Date::isFairDate(int year, int month, int date)
+bool Date::isFairDate(int year, int month, int date) const
 {
     if (!(year >= 0 && month > 0 && month < 13 && date > 0 && date < 32))
     {
@@ -44,7 +44,7 @@ Date::Date(const Date &d)
     _month = d._month;
     _date = d._date;
 }
-bool Date::operator>(const Date &d)
+bool Date::operator>(const Date &d) const
 {
     if (_year > d._year)
     {
@@ -60,11 +60,11 @@ bool Date::operator>(const Date &d)
     }
     return false;
 }
-void Date::Print()
+void Date::Print() const
 {
     cout << _year << "-" << _month << "-" << _date << endl;
 }
-Date Date::operator+(int day)
+Date Date::operator+(int day) const
 {
     Date d(*this);
     d += day;
@@ -108,23 +108,23 @@ Date Date::operator++(int)
     return d;
 }
 
-bool Date::operator==(const Date &d)
+bool Date::operator==(const Date &d) const
 {
     return (_year == d._year && _month == d._month && _date == d._date);
 }
-bool Date::operator<(const Date &d)
+bool Date::operator<(const Date &d) const
 {
     return !((*this > d) || (*this == d));
 }
-bool Date::operator>=(const Date &d)
+bool Date::operator>=(const Date &d) const
 {
     return ((*this > d) || (*this == d));
 }
-bool Date::operator<=(const Date &d)
+bool Date::operator<=(const Date &d) const
 {
     return (!(*this > d));
 }
-bool Date::operator!=(const Date &d)
+bool Date::operator!=(const Date &d) const
 {
     return (!(*this == d));
 }
@@ -150,7 +150,7 @@ Date &Date::operator-=(int day)
     }
     return *this;
 }
-Date Date::operator-(int day)
+Date Date::operator-(int day) const
 {
     Date d(*this);
     d -= day;
@@ -168,10 +168,30 @@ Date &Date::operator--(int)
     d -= 1;
     return d;
 }
-int Date::operator-(const Date &d)
+int Date::operator-(const Date &d) const
 {
+    Date smallerDate(*this);
+    Date biggerDate(d);
+    if (biggerDate < smallerDate)
+    {
+        biggerDate = *this;
+        smallerDate = d;
+    }
+    int ret = 0;
+    while (smallerDate < biggerDate)
+    {
+        smallerDate++;
+        ret++;
+    }
+    return ret;
 }
-
+void Date::PrintWeekDay() const
+{
+    const char *weekday[] = {"Mon", "Tue", "Wed", "Thur", "Fri", "Sate", "Sun"};
+    Date start(1900, 1, 1);
+    int count = *this - start;
+    cout << weekday[count % 7] << endl;
+}
 //----------------------------------------------------
 void TestDate1()
 {
@@ -196,15 +216,35 @@ void TestDate3()
 }
 void TestDate4()
 {
-    Date d1(2022, 1, 17);
+    Date d1(2022, 10, 17);
     Date d2(2021, 9, 1);
     cout << (d1 - d2) << endl;
+    d1.PrintWeekDay();
+}
+void TestDate5()
+{
+    //我们说了成员函数调用的时候会默认产生this指针，这个this指针的类型默认是Date* const this类型。其中const是用来保护this不被改变。
+
+    Date d1;    //取地址后是Date*，可以传过去
+    d1.Print(); //传过去的this指针是Date* const this类型,权限不变
+
+    // const Date d2;//取地址后类型为 const Date*
+    // d2.Print();   //传过去的this指针依然为Date* const this，会导致权限放大。
+    //我们应该在定义函数后面加const，如下
+    // void Date::Print() const
+
+    //这样，或权限缩小，或权限不变，都可以运行通过。
+
+    //成员函数加const是好的，建议能加const都加上。这样普通对象和const对象都可以调用了。
+    //但是如果要修改成员变量的函数不能加const。
 }
 int main()
 {
     // TestDate1();
     // TestDate2();
-    TestDate3();
+    // TestDate3();
+    // TestDate4();
+    TestDate4();
 
     return 0;
 }

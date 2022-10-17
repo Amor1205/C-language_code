@@ -178,140 +178,201 @@ using namespace std;
 //     Date d2(2022, 10, 16); //有参数初始化d2
 //     return 0;
 // }
-class Stack
-{
-public:
-    Stack(size_t capacity = 4)
-    {
-        _a = (int *)malloc(sizeof(int) * capacity);
-        if (_a == nullptr)
-        {
-            perror("malloc");
-            exit(-1);
-        }
-        _top = 0;
-        _capacity = capacity;
-    }
-    ~Stack()
-    {
-        free(_a);
-        _a = nullptr;
-        _top = _capacity = 0;
-    }
+// class Stack
+// {
+// public:
+//     Stack(size_t capacity = 4)
+//     {
+//         _a = (int *)malloc(sizeof(int) * capacity);
+//         if (_a == nullptr)
+//         {
+//             perror("malloc");
+//             exit(-1);
+//         }
+//         _top = 0;
+//         _capacity = capacity;
+//     }
+//     ~Stack()
+//     {
+//         free(_a);
+//         _a = nullptr;
+//         _top = _capacity = 0;
+//     }
 
-private:
-    int *_a;
-    size_t _capacity;
-    size_t _top;
-};
+// private:
+//     int *_a;
+//     size_t _capacity;
+//     size_t _top;
+// };
+
+// // int main()
+// // {
+// //     Date d1;               //无参数初始化d1
+// //     Date d2(2022, 10, 16); //有参数初始化d2
+
+// //     Stack s1;
+// //     Stack s2(10);
+
+// //     return 0;
+// // }
+
+// class Date
+// {
+// public:
+//     Date(int year = 0, int month = 1, int date = 1)
+//     {
+//         _year = year;
+//         _month = month;
+//         _date = date;
+//     }
+//     ~Date()
+//     {
+//     } // Date类没有资源需要清理，所以Date不实现析构函数都是可以的。
+//     Date(Date &d)
+//     {
+//         _year = d._year;
+//         _month = d._month;
+//         _date = d._date;
+//     }
+//     bool operator>(const Date &d)
+//     {
+//         if (_year > d._year)
+//         {
+//             return true;
+//         }
+//         else if (_year == d._year && _month > d._month)
+//         {
+//             return true;
+//         }
+//         else if (_year == d._year && _month == d._month && _date > d._date)
+//         {
+//             return true;
+//         }
+//         return false;
+//     }
+//     //返回类型为void的赋值重载：由于返回值是void，所以只能赋值一次，不能像int一样可以连续赋值，如x=y=z
+//     // void operator=(const Date& d)
+//     // {
+//     //     _year = d._year;
+//     //     _month = d._month;
+//     //     _date = d._date;
+//     // }
+//     //连续赋值重载
+//     // Date& operator=(const Date& d)
+//     // {
+//     //         _year = d._year;
+//     //         _month = d._month;
+//     //         _date = d._date;
+//     //         //并不是返回this，因为this是个指针
+//     //         //返回*this
+//     //         //直接传值返回会进行一次拷贝构造
+//     //         //由于*this是全局的，出作用域不会销毁。
+//     //         //我们可以传引用返回。
+//     //         return *this;
+//     // }
+//     //自己给自己赋值的优化
+//     Date &operator=(const Date &d)
+//     {
+//         if(this!=&d)
+//         {
+//             _year = d._year;
+//             _month = d._month;
+//             _date = d._date;
+//         }
+
+//         return *this;
+//     }
+
+// private:
+//     int _year;
+//     int _month;
+//     int _date;
+// };
+// //函数名就是operator操作符
+// //返回类型要看操作符运算后返回的值是什么
+// //操作符有几个操作时就有几个参数
+
+// //int operator-(const Date &d1, const Date &d2);
+// // int main()
+// // {
+// //     Date d1(2022, 10, 16);
+// //     Date d2(2022, 12, 16);
+// //     cout << (d1 > d2) << endl;
+// //     cout << d1.operator>(d2) << endl;
+// //     return 0;
+// // }
 
 // int main()
 // {
-//     Date d1;               //无参数初始化d1
-//     Date d2(2022, 10, 16); //有参数初始化d2
 
-//     Stack s1;
-//     Stack s2(10);
-
-//     return 0;
-// }
-
-class Date
-{
-public:
-    Date(int year = 0, int month = 1, int date = 1)
-    {
-        _year = year;
-        _month = month;
-        _date = date;
-    }
-    ~Date()
-    {
-    } // Date类没有资源需要清理，所以Date不实现析构函数都是可以的。
-    Date(Date &d)
-    {
-        _year = d._year;
-        _month = d._month;
-        _date = d._date;
-    }
-    bool operator>(const Date &d)
-    {
-        if (_year > d._year)
-        {
-            return true;
-        }
-        else if (_year == d._year && _month > d._month)
-        {
-            return true;
-        }
-        else if (_year == d._year && _month == d._month && _date > d._date)
-        {
-            return true;
-        }
-        return false;
-    }
-    //返回类型为void的赋值重载：由于返回值是void，所以只能赋值一次，不能像int一样可以连续赋值，如x=y=z
-    // void operator=(const Date& d)
-    // {
-    //     _year = d._year;
-    //     _month = d._month;
-    //     _date = d._date;
-    // }
-    //连续赋值重载
-    // Date& operator=(const Date& d)
-    // {
-    //         _year = d._year;
-    //         _month = d._month;
-    //         _date = d._date;
-    //         //并不是返回this，因为this是个指针
-    //         //返回*this
-    //         //直接传值返回会进行一次拷贝构造
-    //         //由于*this是全局的，出作用域不会销毁。
-    //         //我们可以传引用返回。
-    //         return *this;
-    // }
-    //自己给自己赋值的优化
-    Date &operator=(const Date &d)
-    {
-        if(this!=&d)
-        {
-            _year = d._year;
-            _month = d._month;
-            _date = d._date;
-        }
-
-        return *this;
-    }
-
-private:
-    int _year;
-    int _month;
-    int _date;
-};
-//函数名就是operator操作符
-//返回类型要看操作符运算后返回的值是什么
-//操作符有几个操作时就有几个参数
-
-//int operator-(const Date &d1, const Date &d2);
-// int main()
-// {
 //     Date d1(2022, 10, 16);
-//     Date d2(2022, 12, 16);
-//     cout << (d1 > d2) << endl;
-//     cout << d1.operator>(d2) << endl;
+//     Date d3(2000, 12, 05);
+//     //一个已经存在的对象初始化一个马上创建实例化的对象
+//     Date d2(d1); //拷贝构造
+
+//     //两个已经存在的对象之间进行赋值拷贝
+//     d3 = d1;//赋值重载
+//     d3.operator=(d1);
 //     return 0;
 // }
 
-int main()
-{
+// class Widget
+// {
+// public:
+//     Widget()
+//     {
+//         cout << "Widget()" << endl;
+//     }
+//     Widget(const Widget& )
+//     {
+//         cout << "Widget(const Widget &)" << endl;
+//     }
+//     Widget operator=(const Widget &)
+//     {
+//         cout << "Widget operator=(const Widget &)" << endl;
+//         return *this;
+//     }
+//     ~Widget()
+//     {
+//         //cout << "~Widget()" << endl;
+//     }
+// };
 
-    Date d1(2022, 10, 16);
-    Date d3(2000, 12, 05);
-    //一个已经存在的对象初始化一个马上创建实例化的对象
-    Date d2(d1); //拷贝构造
+// Widget f(Widget u)//传值传参拷贝一次
+// {
+//     return u;//传值返回拷贝一次
+// }
+// int main()
+// {
+//     // Widget x;//并非匿名函数，生命周期只在当前函数
+//     //Widget y = f(x);//传值给y一次
+//     //总共应该三次拷贝构造。
+//     //但是，一次调用里面连续构造函数会被编译器优化，合二为一。
+//     //但是如果这样就不会被优化。
+//     //Widget y;
+//     //y = f(x);
+//     //Widget();//匿名对象生命周期只在这一行
+//     //匿名对象
 
-    //两个已经存在的对象之间进行赋值拷贝
-    d3 = d1;//赋值重载
-    d3.operator=(d1);
-    return 0;
-}
+//     //f(Widget());//只是拷贝构造一次。被优化，两次拷贝构造合二为一了
+//     // Widget x;
+//     // f(x);//拷贝构造两次 传值拷贝--传值返回
+//     //    传参或传返回的过程中，存在连续构造、拷贝构造，就会被优化
+//     return 0;
+// }
+
+// Widget f(Widget u)//传值传参
+// {
+//     Widget v(u);//拷贝构造
+//     Widget w = v;//拷贝构造
+//     return w;//传值返回
+// }//调用完整f(x)的是四次
+// int main()
+// {
+//     Widget x;
+//     Widget y = f(f(x));//本来是4*2+1次，
+//     //但是f(x)的返回值和f( f(x) )的传参的连续的两次拷贝构造合并了。
+//     //f(f(x))的传值返回和y的拷贝构造 这两次又合并了。
+//     return 0;
+// }
+
