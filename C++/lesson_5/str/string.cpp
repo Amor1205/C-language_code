@@ -39,10 +39,39 @@ void Test_string3()
     }
     cout << endl;
 }
+void Test_string4()
+{
+    //范围for实际上就是使用的标准的迭代器
+    Amor::string s1("hello world");
+    for(auto e:s1)
+    {
+        cout << e << " ";
+    }
+    cout << endl;
+}
+void Test_string5()
+{
+    Amor::string s1("hello");
+    Amor::string s2("world");
+    Amor::string s3("abcde");
+    cout << ((s1 += "world" )+= 'x').c_str() << endl;
+}
+void Test_string6()
+{
+    string s1("hello world");
+    s1.string::resize(25,'x');
 
+    cout << s1.c_str() << endl;
+}
+void Test_string7()
+{
+    Amor::string s1("hello world");
+    s1.Amor::string::insert(0,"abceddf");
+    cout << s1.c_str() << endl;
+}
 int main()
 {
-    Test_string3();
+    Test_string7();
 
     return 0;
 }
