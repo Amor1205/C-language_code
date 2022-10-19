@@ -54,7 +54,7 @@ namespace Amor
         string &insert(size_t pos, const char *str);
 
         //删
-
+        string &erase(size_t pos = 0, size_t len = npos);
         //查
         size_t size() const;
         char &operator[](size_t pos);
@@ -175,16 +175,17 @@ namespace Amor
     }
     void string::push_back(char ch)
     {
-        if (_size == _capacity)
-        {
-            reserve(_capacity == 0 ? 4 : _capacity * 2);
-            //增容
-        }
-        //添加
-        _str[_size] = ch;
-        ++_size;
-        //加'\0'
-        _str[_size] = '\0';
+        // if (_size == _capacity)
+        // {
+        //     reserve(_capacity == 0 ? 4 : _capacity * 2);
+        //     //增容
+        // }
+        // //添加
+        // _str[_size] = ch;
+        // ++_size;
+        // //加'\0'
+        // _str[_size] = '\0';
+        insert(0, ch);
     }
     void string::reserve(size_t n) // reserve(100)是让容量到100，不包含'\0'
     {
@@ -202,13 +203,14 @@ namespace Amor
     {
         //不能粗暴的扩大二倍
         //因为不知道尾插的字符串多长
-        size_t len = strlen(str);
-        if ((_size + len) > _capacity) // = 是正好放进去
-        {
-            reserve(_size + len);
-        }
-        strcpy(_str + _size, str);
-        _size += len;
+        // size_t len = strlen(str);
+        // if ((_size + len) > _capacity) // = 是正好放进去
+        // {
+        //     reserve(_size + len);
+        // }
+        // strcpy(_str + _size, str);
+        // _size += len;
+        insert(_size, str);
     }
 
     string &string::operator+=(char ch)
@@ -284,7 +286,7 @@ namespace Amor
             //}
             size_t end = _size + 1;
             //记得挪动'\0'
-            while(end>pos)
+            while (end > pos)
             {
                 _str[end] = _str[end - 1];
                 --end;
@@ -298,11 +300,11 @@ namespace Amor
     {
         assert(pos <= _size);
         size_t len = strlen(str);
-        if(_size+len > _capacity)
+        if (_size + len > _capacity)
         {
             reserve(_size + len);
         }
-        size_t end = _size+len;
+        size_t end = _size + len;
         while (end > pos)
         {
             //记得挪动'\0'
@@ -312,6 +314,19 @@ namespace Amor
         memcpy(_str + pos, str, len);
         _size += len;
         return *this;
+    }
+    string& string::erase(size_t pos = 0, size_t len = npos)
+    {
+        if(len == npos || len+pos>=_size)
+        {
+            _str[pos] = '\0';
+            _size = pos;
+        }
+        else
+        {
+            strcpy(_str + pos, _str + pos + len);
+            _size -= len;
+        }
     }
 
     // void string::resize(size_t n, char ch = '\0')

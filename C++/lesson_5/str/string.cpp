@@ -66,7 +66,7 @@ void Test_string6()
 void Test_string7()
 {
     Amor::string s1("hello world");
-    s1.Amor::string::insert(0,"abceddf");
+    s1.Amor::string::insert(3,"abceddf");
     cout << s1.c_str() << endl;
 }
 int main()
