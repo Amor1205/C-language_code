@@ -455,7 +455,131 @@ const char & string::operator[](size_t pos) const
     }
 ```
 
+#### relational operator > < == >= <=
+
+在这里我们可以选择把他们定义为成员函数也可以选择定义为全局函数，但是有一些区别，以>为例。
+
+```c++
+//成员函数
+bool operator>(const string& s)
+{
+		if(strcmp(_str, s._str))
+		{
+				return true;
+		}
+		else
+		{
+				return false;
+		}
+}
+//全局函数
+bool operator>(const string& s1,const string& s2)
+{
+  		size_t i1 = 0,i2 = 0;
+  		while(i1<s.size() && i2.size())
+      {
+        	if(s1[i1] > s2[i2])
+          {
+            	return true;
+          }
+        else if(s1[i1] < s2[i2])
+        {
+          		return false;
+        }
+        else
+        {
+          		++i1;
+          		++i2;
+        }
+      }
+			return i1<s1.size()?true:false;
+}
+
+//当然我们也可以使用我们定义的c_str()函数，就可以继续使用上面的_str去strcmp了。如下
+bool operator>(const string& s1,const string& s2)
+{
+  	return strcmp(s1.c_str(),s2.c_str())>0;
+  //这种写法是对第一种写法的简写。改用三目操作符。
+}
+```
+
+```c++
+bool operator==(const string& s)
+{
+		return strcmp(_str,s._str)==0;
+}
+```
+
+写两个剩余的全部复用
+
+```
+bool operator<(const string& s)
+{
+		return ! (_str>=s._str)
+}
+bool operator<=(const string& s)
+{
+		return !(_str>s._str);
+}
+bool operator>=(const string& s)
+{
+		return _str==s._str || _str>s._str;
+}
+bool operator!=(const string& s)
+{
+		return !(_str==s._str) ;
+}
+```
+
+#### operator >> <<
+
+这个是必须重载成全局函数，因为第一个位置要放cout和cin。带返回值是因为要支持链式的调用。如cout<< s1 << endl;连续的两个<<必须要有返回值。
+
+```c++
+ostream<<(ostream& out,const string& s)//有返回值
+{
+//范围for
+		for(auto ch : s)
+		{
+		 		out << ch;
+		}
+		return out;
+}
+//法2
+ostream<<(ostream& out,const string& s)//有返回值
+{
+//数组遍历
+		for(size_t i = 0; i< s.size(); i++)
+		{
+				cout<< s[i];
+		}
+		return out;
+}
+//注意：不可以这么写：
+ostream<<(ostream& out,const string& s)//有返回值
+{
+		out << s.c_str();
+		//因为这样实际上遇到了'\0'会自动终止。
+		return out;
+}
+//--------------上面是错误的-------------------
+istream<<(istream& in,string& s)//不写const了，因为要修改。
+{
+		char ch = in.get();
+  	while(ch != ' ' && ch != '\n')
+    {
+      	s+=ch;
+      	ch = in.get();
+    }
+  	return in;
+}
+```
+
+
+
 ### 其他函数
+
+一般只有流插入和流提取重载才会放在全局里定义，其他的放在成员函数即可。
 
 #### 成员变量的访问
 
@@ -634,4 +758,73 @@ void string::reserve(size_t n)
 ```
 
 #### insert()
+
+```c++
+string &string::insert(size_t pos, char ch)
+    {
+        assert(pos <= _size);
+        if (_size == _capacity)
+        {
+            reserve(_capacity == 0 ? 4 : 2 * _capacity);
+        }
+        if (pos == _size)
+            push_back(ch);
+        else
+        {
+            // size_t end = _size;
+            // while(end>=pos)//size_t非常容易越界，考虑pos=0，end=0，end--后变为-1为无穷大，所以要修改。
+            //{
+            //    _str[end + 1] = _str[end];
+            //  --end;
+            //}
+            size_t end = _size + 1;
+            //记得挪动'\0'
+            while (end > pos)
+            {
+                _str[end] = _str[end - 1];
+                --end;
+            }
+            _str[pos] = ch;
+            ++_size;
+        }
+        return *this;
+    }
+    string &string::insert(size_t pos, const char *str)
+    {
+        assert(pos <= _size);
+        size_t len = strlen(str);
+        if (_size + len > _capacity)
+        {
+            reserve(_size + len);
+        }
+        size_t end = _size + len;
+        while (end >= pos + len)
+        {
+            //记得挪动'\0'
+            _str[end] = _str[end - len];
+            --end;
+        }
+        memcpy(_str + pos, str, len);
+        _size += len;
+        return *this;
+    }
+```
+
+#### erase()
+
+```c++
+    string& string::erase(size_t pos = 0, size_t len = npos)
+    {
+        if(len == npos || len+pos>=_size)
+        {
+            _str[pos] = '\0';
+            _size = pos;
+        }
+        else
+        {
+            strcpy(_str + pos, _str + pos + len);
+            _size -= len;
+        }
+    }
+```
 

@@ -59,6 +59,9 @@ namespace Amor
         size_t size() const;
         char &operator[](size_t pos);
         char *c_str();
+        bool operator>(const char *);
+        bool operator<(const char *);
+
         //改
         void swap(string &s)
         {
@@ -315,9 +318,9 @@ namespace Amor
         _size += len;
         return *this;
     }
-    string& string::erase(size_t pos = 0, size_t len = npos)
+    string &string::erase(size_t pos = 0, size_t len = npos)
     {
-        if(len == npos || len+pos>=_size)
+        if (len == npos || len + pos >= _size)
         {
             _str[pos] = '\0';
             _size = pos;
@@ -370,5 +373,82 @@ namespace Amor
     //         }
     //     }
     // }
+    //成员函数
+    // bool operator>(const string &s)
+    // {
+    //     if (strcmp(_str, s._str))
+    //     {
+    //         return true;
+    //     }
+    //     else
+    //     {
+    //         return false;
+    //     }
+    // }
+    // //全局函数
+    // bool operator>(const string &s1, const string &s2)
+    // {
+    //     size_t i1 = 0, i2 = 0;
+    //     while (i1 < s.size() && i2.size())
+    //     {
+    //         if (s1[i1] > s2[i2])
+    //         {
+    //             return true;
+    //         }
+    //         else if (s1[i1] < s2[i2])
+    //         {
+    //             return false;
+    //         }
+    //         else
+    //         {
+    //             ++i1;
+    //             ++i2;
+    //         }
+    //     }
+    //     return i1 < s1.size() ? true : false;
+    // }
 
+    // //当然我们也可以使用我们定义的c_str()函数，就可以继续使用上面的_str去strcmp了。如下
+    // bool operator>(const string &s1, const string &s2)
+    // {
+    //     return strcmp(s1.c_str(), s2.c_str()) > 0 ? true : false;
+    //     //这种写法是对第一种写法的简写。改用三目操作符。
+    // }
+    // ostream << (ostream & out, const string &s) //有返回值
+    // {
+    //     //范围for
+    //     for (auto ch : s)
+    //     {
+    //         out << ch;
+    //     }
+    //     return out;
+    // }
+    // //法2
+    // ostream << (ostream & out, const string &s) //有返回值
+    // {
+    //     //数组遍历
+    //     for (size_t i = 0; i < s.size(); i++)
+    //     {
+    //         cout << s[i];
+    //     }
+    //     return out;
+    // }
+    // //注意：不可以这么写：
+    // ostream << (ostream & out, const string &s) //有返回值
+    // {
+    //     out << s.c_str();
+    //     //因为这样实际上遇到了'\0'会自动终止。
+    //     return out;
+    // }
+    // //--------------上面是错误的-------------------
+    // istream << (istream & in, string &s) //不写const了，因为要修改。
+    // {
+    //     char ch = in.get();
+    //     while (ch != ' ' && ch != '\n')
+    //     {
+    //         s += ch;
+    //         ch = in.get();
+    //     }
+    //     return in;
+    // }
 } // namespace str
