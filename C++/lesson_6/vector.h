@@ -133,7 +133,14 @@ namespace Amor
                 T *tmp = new T[n];
                 if (_start)
                 {
-                    memcpy(tmp, _start, sizeof(T) * size());
+                    size_t sz = size();
+                    // memcpy(tmp, _start, sizeof(T) * size());//在这不用memcpy，浅拷贝
+                    for (size_t i = 0; i < sz; ++i)
+                    {
+                        // T是int，一个个拷贝没问题
+                        // T是string，深拷贝，没问题。
+                        tmp[i] = _start[i];
+                    }
                     delete[] _start;
                 }
                 _finish = tmp + size();
@@ -279,6 +286,12 @@ namespace Amor
     }
     void test_vector_4()
     {
+        // vector 的迭代器失效主要发生在insert/erase
+        // string的insert和erase迭代器是否会失效？
+        //
+        //只要使用迭代器访问的容器，都可能会涉及到迭代器的失效
+        // string迭代器失效的情况与vector完全类似。
+        //但是不用迭代器是不会失效的，因为string主要用下标，所以string不经常涉及到迭代器失效。
         vector<int> v1;
         v1.push_back(1);
         v1.push_back(2);
@@ -312,4 +325,35 @@ namespace Amor
         }
         cout << endl;
     }
+
+    void test_vector_5() //有关深浅拷贝： memcpy是浅拷贝
+    {
+        vector<string> v;
+        v.push_back("1111111111111");
+        v.push_back("1111111111111");
+        v.push_back("1111111111111");
+        v.push_back("1111111111111");
+        v.push_back("1111111111111");
+        //五个会报错
+        //四个没问题
+        //是reserve出了问题
+        for (auto &e : v)
+        {
+            cout << e << " ";
+        }
+        cout << endl;
+    }
+
+    void test_vector_6()
+    {
+        //vs下对string做了优化
+        class string{
+            private:
+            char _Buf[16];//以空间换时间，如果字符串长度小于15，则存在_Buf里
+            char *_Ptr;// >=15，则算在_Ptr指向的堆里。
+            size_t _mySize;
+            size_t _myRes;
+        };
+    }
+
 } // namespace Amor

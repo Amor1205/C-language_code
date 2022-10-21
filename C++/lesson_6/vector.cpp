@@ -147,7 +147,7 @@ void test_vector6()//如何增容
 int main()
 {
     // test_vector6();
-    Amor::test_vector_4();
+    Amor::test_vector_5();
 
     return 0;
 }
