@@ -1,7 +1,7 @@
 #include <iostream>
 #include <list>
 using namespace std;
-#include"list.h"
+#include "list.h"
 void test_list1()
 {
     list<int> lt;
@@ -45,9 +45,9 @@ void test_list2()
     lt.push_back(5);
 
     // lt.sort();//排序,但一般不用
-    lt.reverse();//逆序
-    lt.unique();//去重，去重之前要先排序，否则效率太低。
-    lt.remove(4);//给值，自己找自己删
+    lt.reverse(); //逆序
+    lt.unique();  //去重，去重之前要先排序，否则效率太低。
+    lt.remove(4); //给值，自己找自己删
     // lt.splice();//接合，一个链表转移链接到另外一个链表
 }
 

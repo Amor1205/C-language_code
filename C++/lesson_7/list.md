@@ -2,6 +2,8 @@
 
 双向带头循环链表 <doubly-linked list>
 
+list表示的是一个**双向带头循环链表**，允许在常数范围内的任意位置进行插入和删除，且前后可以进行双向迭代。其缺陷和链表一样就是不能支持随机访问（下标访问），但是在任意位置进行插入的效率更高。
+
 ```c++
 template <class T,class Alloc = allocator<T>> calss list;
 ```
@@ -26,6 +28,59 @@ template <class T,class Alloc = allocator<T>> calss list;
 > 所以本质上vector和list是互补的两个数据结构。
 
 ## list的使用
+
+list使用与vector非常类似。浅浅的使用一下。
+
+```c++
+void test_list1()
+{
+    list<int> lt;
+    lt.push_back(1);
+    lt.push_back(2);
+    lt.push_back(4);
+    lt.push_back(3);
+    lt.push_back(5);
+
+    //遍历
+    list<int>::iterator it = lt.begin();
+    while (it != lt.end())
+    {
+        cout << *it << " ";
+        ++it;
+    }
+    cout << endl;
+
+    list<int>::reverse_iterator rit = lt.rbegin();
+    while (rit != lt.rend())
+    {
+        cout << *rit << " ";
+        ++rit;
+    }
+    cout << endl;
+
+    for (auto e : lt)
+    {
+        cout << e << " ";
+    }
+    cout << endl;
+}
+
+void test_list2()
+{
+    list<int> lt;
+    lt.push_back(1);
+    lt.push_back(2);
+    lt.push_back(4);
+    lt.push_back(3);
+    lt.push_back(5);
+
+    // lt.sort();//排序,但一般不用
+    lt.reverse();//逆序
+    lt.unique();//去重，去重之前要先排序，否则效率太低。
+    lt.remove(4);//给值，自己找自己删
+    // lt.splice();//接合，一个链表转移链接到另外一个链表
+}
+```
 
 ## list的模拟实现
 
@@ -993,3 +1048,4 @@ typename iterator::reference operator*()
 ## 总结
 
 至此，我们的list篇就结束啦！
+
