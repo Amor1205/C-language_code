@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include "Myzip.h"
+using std::cin;
 using std::cout;
 using std::endl;
 using std::string;
@@ -11,7 +12,7 @@ using std::string;
 struct ByteInfo
 {
 public:
-    char _ch;
+    unsigned char _ch;
     size_t _count; //看出现的次数
     string _code;  // Huffman编码
 
@@ -133,7 +134,7 @@ public:
     void file_compression(const string &filePath)
     {
         //以只读形式打开
-        FILE *fIn = fopen(filePath.c_str(), "r");
+        FILE *fIn = fopen(filePath.c_str(), "rb");
         if (nullptr == fIn)
         {
             cout << "File cannot be found" << endl;
@@ -142,7 +143,7 @@ public:
         // 1. 统计源文件中每个字节出现的次数并记录
         //不能直接fread()1024个，因为不确定有1024个字节。
 
-        char readBuff[1024];
+        unsigned char readBuff[1024];
         while (true)
         {
             size_t readSize = fread(readBuff, 1, 1024, fIn);
@@ -164,8 +165,8 @@ public:
         // }
 
         // 2. 用字节的频次来创建huffman树
-        ByteInfo valid;
-        HuffmanTree<ByteInfo> ht(_fileInfo, valid);
+        ;
+        HuffmanTree<ByteInfo> ht(_fileInfo, ByteInfo());
         // ht.PreOrderPrint(ht.get_rootNode());//判断是否成功
         // 3. 获取每个字节的huffman编码
         //从根 左走编码0，右走编码1.
@@ -178,13 +179,13 @@ public:
         fseek(fIn, 0, SEEK_SET); //起始位置偏移0个字节
         string file_name(get_file_name(filePath));
         file_name += "hz";
-        FILE *fout = fopen(file_name.c_str(), "w");
+        FILE *fout = fopen(file_name.c_str(), "wb");
 
         // 3.5 用来解压缩的数据的录入
         WriteHeadInfo(filePath, fout);
 
         //需要一个char类型来接收
-        char sin_ch = '0'; // 0000 0000
+        unsigned char sin_ch = '0'; // 0000 0000
         //不知道八个bit位是否填满
         int sin_ch_count = 0;
         while (true)
@@ -239,11 +240,11 @@ public:
         size_t pos = filePath.find_last_of('.');
         size_t curpos = 0;
         string file_name;
-        for (; curpos <= pos;curpos++)
+        for (; curpos <= pos; curpos++)
         {
             file_name += filePath[curpos];
         }
-            return file_name;
+        return file_name;
     }
     void get_line(FILE *fIn, string &strInfo)
     {
@@ -263,7 +264,7 @@ public:
             cout << "invalid compressend file formats" << endl;
             return;
         }
-        FILE *fIn = fopen(filePath.c_str(), "r");
+        FILE *fIn = fopen(filePath.c_str(), "rb");
         if (nullptr == fIn)
         {
             cout << "invalid pathway of file" << endl;
@@ -283,17 +284,63 @@ public:
         for (size_t i = 0; i < lineCount; ++i)
         {
             strInfo = "";
-            get_line(fIn, strInfo);
+            get_line(fIn, strInfo); //没有考虑要读取的字符是换行的情况。
+            //对换行进行单独处理
+            if ("" == strInfo)
+            {
+                strInfo += '\n';
+                get_line(fIn, strInfo);
+            }
+
             // _char : _fequency
             //_fileInfo[strInfo[0]]._ch = strInfo[0];//_ch可以不用管，因为构造函数已经构造好了。这里只是重复
+            unsigned char ch = strInfo[0];
+            _fileInfo[ch]._count = atoi(strInfo.c_str() + 2);
+        }
 
-            _fileInfo[strInfo[0]]._count = atoi(strInfo.c_str() + 2);
-        }
-        for (size_t i = 0; i < 256;++i)
+        //用来检查结果
+        // for (size_t i = 0; i < 256;++i)
+        // {
+        //     if(_fileInfo[i]._count != 0)
+        //         cout << _fileInfo[i]._ch << " : " << _fileInfo[i]._count << endl;
+        // }
+
+        // 3. 还原huffman树
+        HuffmanTree<ByteInfo> ht(_fileInfo, ByteInfo());
+
+        // 4. 解压缩
+        FILE *fout = fopen(deCompressFile.c_str(), "wb");
+        unsigned char readBuff[1024];
+        size_t fileSize = 0;
+        HuffmanTreeNode<ByteInfo> *cur = ht.get_rootNode();
+        while (true)
         {
-            if(_fileInfo[strInfo[i]]._count != 0)
-                cout << _fileInfo[strInfo[i]]._ch << " : " << _fileInfo[strInfo[i]]._count << endl;
+            size_t readSize = fread(readBuff, 1, 1024, fIn);
+            if (0 == readSize)
+                break;
+            for (size_t i = 0; i < readSize; ++i)
+            {
+                char ch = readBuff[i];
+                for (int j = 0; j < 8; ++j)
+                {
+                    if (ch & 0x80) // 1000 0000
+                        cur = cur->_right;
+                    else
+                        cur = cur->_left;
+                    ch <<= 1;                                            //左移
+                    if (nullptr == cur->_left && nullptr == cur->_right) //找到叶子
+                    {
+                        fputc(cur->_weight._ch, fout); //写入
+                        cur = ht.get_rootNode();       //恢复到根节点
+                        fileSize++;
+                        if (fileSize == cur->_weight._count) //读取够fileSize了
+                            break;
+                    }
+                }
+            }
         }
+        fclose(fIn);
+        fclose(fout);
     }
     //成员变量
     std::vector<ByteInfo> _fileInfo;
