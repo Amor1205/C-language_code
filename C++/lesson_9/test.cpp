@@ -11,39 +11,39 @@ void menu()
 }
 int main()
 {
-    int input = 0;
-    bool isQuit = false;
-    FileCompress fc;
-    string fileName;
-    cin >> input;
-    while (1)
-    {
-        menu();
-        cin >> input;
-        switch (input)
-        {
-        case 0:
-            isQuit = true;
-            break;
-        case 1:
-            cout << "Please enter the name of the zip file:>";
-            cin >> fileName;
-            fc.file_compression(fileName);
-            break;
-        case 2:
-            cout << "Please enter the name of the file you want to unzip:>";
-            cin >> fileName;
-            fc.file_decompression(fileName);
-            break;
-        }
-        if (isQuit)
-            break;
-    }
+    // int input = 0;
+    // bool isQuit = false;
+    // FileCompress fc;
+    // string fileName;
+    // cin >> input;
+    // while (1)
+    // {
+    //     menu();
+    //     cin >> input;
+    //     switch (input)
+    //     {
+    //     case 0:
+    //         isQuit = true;
+    //         break;
+    //     case 1:
+    //         cout << "Please enter the name of the zip file:>";
+    //         cin >> fileName;
+    //         fc.file_compression(fileName);
+    //         break;
+    //     case 2:
+    //         cout << "Please enter the name of the file you want to unzip:>";
+    //         cin >> fileName;
+    //         fc.file_decompression(fileName);
+    //         break;
+    //     }
+    //     if (isQuit)
+    //         break;
+    // }
 
     // Test();
-    // FileCompress f;
-    // f.file_compression("IMG_7185.JPG");
-    // f.file_decompression("IMG_7185.hz");
+    FileCompress f;
+    //f.file_compression("txt.txt");
+    f.file_decompression("txt.hz");
     return 0;
 }
 
@@ -53,7 +53,6 @@ int main()
 // 2.
 //我们用大的文件进行压缩 发现只走了一部分。
 // FF 全1 以r打开的文本格式的文件搜到FF就会中止，一般的文本文件的末尾是FF结尾，但如果我们打开二进制文件，压缩的文件中可能在中途出现FF。所以不能以r打开，而应该以rb打开
-
 
 //优化：范式huffman树
 //对于同一层节点中所有的叶子节点都调整到左边，然后对于同一层的叶子节点按照符号顺序从小到大调整，最后按照左0右1的方式分配编码。
@@ -65,10 +64,8 @@ int main()
 //我们有huffman树中的符号和其编码位长，就可以进行排序：编码位长为第一字段，编码大小为第二字段排序。
 //这种方法比递归法更快，会让压缩的效率变高，同时它也可以提高压缩率。可以不用保存频次信息，只需要保存编码位长即可，最多保存256个字符的。
 
-
-
 //测试
-//beyondCompare
+// beyondCompare
 //测压缩率
 //文本文件和二进制格式文件的压缩比率
 //测试程序的压缩性能

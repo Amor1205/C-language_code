@@ -121,7 +121,6 @@ public:
             if (e._count == 0)
                 continue;
             chInfo += e._ch;
-            chInfo += ':';
             chInfo += std::to_string(e._count);
             chInfo += '\n'; //换行，一条信息占用一行
             appearLine_count++;
@@ -165,7 +164,7 @@ public:
         // }
 
         // 2. 用字节的频次来创建huffman树
-        ;
+
         HuffmanTree<ByteInfo> ht(_fileInfo, ByteInfo());
         // ht.PreOrderPrint(ht.get_rootNode());//判断是否成功
         // 3. 获取每个字节的huffman编码
@@ -186,7 +185,7 @@ public:
 
         //需要一个char类型来接收
         unsigned char sin_ch = '0'; // 0000 0000
-        //不知道八个bit位是否填满
+        //不知道八个bit位是否填满，用count计数
         int sin_ch_count = 0;
         while (true)
         {
@@ -225,16 +224,16 @@ public:
         fclose(fIn);
         fclose(fout);
     }
-    //解压缩很多方式，比如利用unorder_map<string,char> 建立编码和字符的关系，查压缩文件的头一个bit位在string有无对应，如无，查头2个bit在string中有无对应，直到有对应后，替换为char。但是这种需要频繁对比，非常麻烦。
-    //我们可以用huffman树解压缩，非常方便：取一个字节，1往右走，0往左走，走到叶子节点为止，我们就可以查到对应字符了。随后让指针回到根节点继续走，直到比特流结束
-    //但是我们要保存一棵树。我们当初创建一棵树是通过字符和它出现的频次，所以我们保存就是保存字符与其对应的出现频次。
-    //但是仅仅保存字符和频次不行，因为如何区分他们与我们压缩的bit流呢？先提供这些字符的个数，比如文件中只有abcde五个字符，那么我们先在文件中录入5，表示我们会读取到5个字符及其出现频次。
-    //此外我们还需要保存原文件的格式，也就是后缀，否则无法还原。
+    // 解压缩很多方式，比如利用unorder_map<string,char> 建立编码和字符的关系，查压缩文件的头一个bit位在string有无对应，如无，查头2个bit在string中有无对应，直到有对应后，替换为char。但是这种需要频繁对比，非常麻烦。
+    // 我们可以用huffman树解压缩，非常方便：取一个字节，1往右走，0往左走，走到叶子节点为止，我们就可以查到对应字符了。随后让指针回到根节点继续走，直到比特流结束
+    // 但是我们要保存一棵树。我们当初创建一棵树是通过字符和它出现的频次，所以我们保存就是保存字符与其对应的出现频次。
+    // 但是仅仅保存字符和频次不行，因为如何区分他们与我们压缩的bit流呢？先提供这些字符的个数，比如文件中只有abcde五个字符，那么我们先在文件中录入5，表示我们会读取到5个字符及其出现频次。
+    // 此外我们还需要保存原文件的格式，也就是后缀，否则无法还原。
 
-    //所以我们需要录入的信息有：
-    //解压缩需要用到的信息(原文件后缀，字符个数，字符及字符出现频次)+压缩数据
-    //注意，我们不需要解压缩的bit位个数readSize，因为huffman树根节点的权值就是我们需要解压出来的字符的个数。
-    //
+    // 所以我们需要录入的信息有：
+    // 解压缩需要用到的信息(原文件后缀，字符个数，字符及字符出现频次)+压缩数据
+    // 注意，我们不需要解压缩的bit位个数readSize，因为huffman树根节点的权值就是我们需要解压出来的字符的个数。
+
     string get_file_name(const string &filePath)
     {
         size_t pos = filePath.find_last_of('.');
@@ -295,7 +294,7 @@ public:
             // _char : _fequency
             //_fileInfo[strInfo[0]]._ch = strInfo[0];//_ch可以不用管，因为构造函数已经构造好了。这里只是重复
             unsigned char ch = strInfo[0];
-            _fileInfo[ch]._count = atoi(strInfo.c_str() + 2);
+            _fileInfo[ch]._count = atoi(strInfo.c_str() + 1);
         }
 
         //用来检查结果

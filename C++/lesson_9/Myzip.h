@@ -35,7 +35,7 @@ class HuffmanTree
 public:
     HuffmanTree()
         : _root(nullptr) {}
-    HuffmanTree(const std::vector<W> &vw, const W &valid = HuffmanTree())
+    HuffmanTree(const std::vector<W> &vw, const W &valid = W())
     {
         //用所有权值构造只有根节点的二叉树森林
         //森林中的二叉树应该用堆-优先级队列保存
@@ -48,22 +48,22 @@ public:
             }
         }
 
-        while (q.size() > 1)
-        {
-            Node *left = q.top();
-            q.pop();
-            Node *right = q.top();
-            q.pop();
+while (q.size() > 1)
+{
+    Node *left = q.top();
+    q.pop();
+    Node *right = q.top();
+    q.pop();
 
-            // left 和 right作为新节点的左右子树
-            Node *parent = new Node(left->_weight + right->_weight);
-            parent->_left = left;
-            parent->_right = right;
-            left->_parent = parent;
-            right->_parent = parent;
-            //父节点放入森林
-            q.push(parent);
-        }
+    // left 和 right作为新节点的左右子树
+    Node *parent = new Node(left->_weight + right->_weight);
+    parent->_left = left;
+    parent->_right = right;
+    left->_parent = parent;
+    right->_parent = parent;
+    //父节点放入森林
+    q.push(parent);
+}
         //最后一个就是Huffman树
         _root = q.top();
     }
@@ -72,7 +72,7 @@ public:
         Destroy(_root);
     }
 
-    void PreOrderPrint(Node *&root)
+    void PreOrderPrint(Node *&root) const
     {
         if (!root)
         {
@@ -83,10 +83,10 @@ public:
         PreOrderPrint(root->_left);
         PreOrderPrint(root->_right);
     }
-    Node *&get_rootNode() //当函数的返回值是非引用变量时，会用一个临时变量来保存该返回值；当函数的返回值是引用变量时，不使用临时变量，直接返回该引用
-    {
-        return _root;
-    }
+Node *&get_rootNode() //当函数的返回值是非引用变量时，会用一个临时变量来保存该返回值；当函数的返回值是引用变量时，不使用临时变量，直接返回该引用
+{
+    return _root;
+}   
 
 private:
     void Destroy(Node *&root)
