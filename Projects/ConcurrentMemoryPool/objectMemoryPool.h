@@ -1,7 +1,4 @@
-#pragma once
-#include <iostream>
-using std::cout;
-using std::endl;
+#include"common.h"
 
 // method1
 // template<size_t N>
