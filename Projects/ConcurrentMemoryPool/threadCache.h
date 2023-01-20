@@ -1,5 +1,5 @@
 #include "common.h"
-
+#include "centralCache.h"
 class ThreadCache
 {
 public:
@@ -27,10 +27,27 @@ public:
         size_t index = sizeClass::index(size);
         _freeLists[index].Push(ptr);
     }
-    void *FetchFromCentralCache(size_t index, size_t size);
+    void *FetchFromCentralCache(size_t index, size_t size)
+    {
+        size_t batchNum = std::min(_freeLists[index].MaxSize(), sizeClass::NumMoveSize(size));
+        if (batchNum == _freeLists[index].MaxSize())
+        {
+            _freeLists[index].MaxSize()++;
+        }
+        void *begin = nullptr;
+        void *end = nullptr;
+        size_t actualNum = CentralCache::getInstance()->FetchRangeObj(begin, end, batchNum, size);
+        assert(actualNum);
+        if(actualNum == 1)
+            assert(begin == end);
+        else
+            _freeLists[index].PushRange(NextObj(begin), end);
+        return begin;
+
+    }
 
 private:
     FreeList _freeLists[NUM_FREELISTS];
 };
 // TLS thread local storage
-static __declspec(thread) ThreadCache *pthreadCache = nullptr;
+static _declspec(thread) ThreadCache *pthreadCache = nullptr;

@@ -29,7 +29,7 @@ public:
                 _remainingBytes += 128 * 1024;
                 if (_memory == nullptr)
                 {
-                    thorw std::bad_alloc();
+                    throw std::bad_alloc();
                 }
             }
 

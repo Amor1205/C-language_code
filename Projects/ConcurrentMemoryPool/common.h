@@ -2,15 +2,25 @@
 #include <iostream>
 #include <assert.h>
 #include <thread>
+#include <algorithm>
+#include <mutex>
 using std::cout;
 using std::endl;
 
+#ifdef _WIN64
+typedef long long PAGE_ID;
+#elif _WIN32
+typedef size_t PAGE_ID;
+#elif __APPLE__
+typedef long long PAGE_ID;
+#endif
+
 static const size_t MAX_BYTES = 256 * 1024;
-static const size_t NUM_FREELISTS = 256;
-// common function
-static void *&NextObj(void *obj)
-{
-    return *(void **)obj;
+ static const size_t NUM_FREELISTS = 256;
+ // common function
+ static void *&NextObj(void *obj)
+ {
+     return *(void **)obj;
 }
 
 class FreeList
@@ -21,6 +31,12 @@ public:
         assert(obj);
         NextObj(obj) = _freeList;
         _freeList = obj;
+    }
+    void PushRange(void* begin, void* end)
+    {
+        assert(begin);
+        NextObj(end) = _freeList;
+        _freeList = begin;
     }
     void *Pop()
     {
@@ -34,9 +50,14 @@ public:
     {
         return _freeList == nullptr;
     }
+    size_t& MaxSize()
+    {
+        return _maxSize;
+    }
 
 private:
     void *_freeList = nullptr;
+    size_t _maxSize = 1;
 };
 
 class sizeClass
@@ -98,4 +119,67 @@ public:
             return -1;
         }
     }
+    static size_t NumMoveSize(size_t size)
+    {
+        assert(size > 0);
+        int num = MAX_BYTES / size;
+        if(num < 2)
+            return 2;
+        else if(num > 512)
+            return 512;
+        else
+            return num; 
+    }
+};
+
+//manage continuous pages
+class Span
+{
+public:
+    PAGE_ID _pageid = 0; // Page id of the start page of the large block of memory
+    size_t _n = 0;// num of page
+
+    Span* _next = nullptr;
+    Span *_prev = nullptr;
+
+    size_t _useCount = 0; // num of small blocks of memory allocated
+    void *_freeList = nullptr; 
+};
+
+class SpanList
+{
+public:
+    SpanList()
+    {
+        _head = new Span;
+        _head->_next = _head;
+        _head->_prev = _head;
+    }
+    void Insert(Span* pos, Span* newSpan)
+    {
+        assert(pos);
+        assert(newSpan);
+        Span *prev = pos->_prev;
+        prev->_next = newSpan;
+        newSpan->_prev = prev;
+        newSpan->_next = pos;
+        pos->_prev = newSpan;
+    }
+    void Erase(Span* pos)
+    {
+        assert(pos);
+        assert(pos != _head);
+
+        Span *prev = pos->_prev;
+        Span *next = pos->_next;
+
+        prev->_next = next;
+        next->_prev = prev;
+
+    }
+
+private:
+    Span *_head;
+public:
+    std::mutex _mtx;
 };
