@@ -1,5 +1,6 @@
 #pragma once
 #include "common.h"
+#include "objectMemoryPool.h"
 
 class PageCache
 {
@@ -10,6 +11,7 @@ public:
     }
     Span *MapObjToSpan(void *obj)
     {
+        std::unique_lock lock(_pageMtx); 
         // calculate pageid
         PAGE_ID id = (PAGE_ID)obj >> PAGE_SHIFT;
         auto ret = _idSpanMap.find(id);
@@ -25,6 +27,15 @@ public:
     }
     void ReleaseSpanToPageCache(Span *span)
     {
+        // > 128 page , return to the heap 
+        if(span->_n > NUM_PAGES - 1)
+        {
+            void *ptr = (void *)(span->_pageid << PAGE_SHIFT);
+            SystemFree(ptr);
+            delete span;
+
+            return;
+        }
         // attempt merging of adjacent span pages
         // mitigating memory fragmentation
         //  need a mapping from pageid to span
@@ -70,7 +81,21 @@ public:
     // get a span (K pages)
     Span *NewSpan(size_t npage)
     {
-        assert(npage > 0 && npage <= NUM_PAGES);
+        assert(npage > 0);
+        // > 128 page , apply memory from the heap
+        if (npage > NUM_PAGES - 1)
+        {
+            void *ptr = SystemAlloc(npage);
+            // Span *span = new Span;
+            Span *span = _spanPool.New();
+
+            span->_pageid = (PAGE_ID)ptr >> PAGE_SHIFT;
+            span->_n = npage;
+            
+            _idSpanMap[span->_pageid] = span;
+
+            return span;
+        }
         // check if there is a span in _spanlists[npage]
         if (!_spanLists[npage].Empty())
         {
@@ -82,7 +107,8 @@ public:
             if (!_spanLists[i].Empty())
             {
                 Span *curSpan = _spanLists[i].PopFront();
-                Span *nPageSpan = new Span;
+                // Span *nPageSpan = new Span;
+                Span *nPageSpan = _spanPool.New();
                 // cutting
                 nPageSpan->_pageid = curSpan->_pageid;
                 nPageSpan->_n = npage;
@@ -105,7 +131,8 @@ public:
             }
         }
         // no extra span,  apply for memory
-        Span *bigSpan = new Span;
+        //Span *bigSpan = new Span;
+        Span *bigSpan = _spanPool.New();
         void *ptr = SystemAlloc(NUM_PAGES - 1);
         bigSpan->_pageid = (PAGE_ID)ptr >> PAGE_SHIFT;
         bigSpan->_n = NUM_PAGES - 1;
@@ -118,6 +145,8 @@ public:
 
 private:
     SpanList _spanLists[NUM_PAGES];
+    objectMemoryPool<Span> _spanPool;
+
     std::unordered_map<PAGE_ID, Span *> _idSpanMap;
     PageCache() {}
     PageCache(const PageCache &) = delete;

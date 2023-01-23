@@ -43,7 +43,14 @@ inline static void* SystemAlloc(size_t kpage)
         throw std::bad_alloc();
     return ptr;
 }
-
+inline static void SystemFree(void *ptr)
+{
+#ifdef _WIN32
+    VirtualFree(ptr, 0, MEM_RELEASE);
+#else
+    // sbrk unmmap等
+#endif
+}
 class FreeList
 {
 public:
@@ -99,7 +106,7 @@ public:
 private:
     void *_freeList = nullptr;
     size_t _maxSize = 1;
-    size_t _size;
+    size_t _size = 0;
 };
 
 class sizeClass
@@ -133,8 +140,7 @@ public:
         }
         else
         {
-            assert(false);
-            return -1;
+            return _roundup(size, 1 << PAGE_SHIFT);
         }
     }
     static inline size_t _index(size_t size, size_t align_shift)
@@ -192,6 +198,7 @@ public:
 
     Span *_next = nullptr;
     Span *_prev = nullptr;
+    size_t _objSize = 0; // Size of cut small objects
     bool _ifBeingUsed = false;
     size_t _useCount = 0; // num of small blocks of memory allocated
     void *_freeList = nullptr;

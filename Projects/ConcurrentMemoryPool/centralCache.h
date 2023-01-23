@@ -30,6 +30,7 @@ public:
         Span *span = PageCache::getInstance()->NewSpan(sizeClass::NumMovePage(size));
         //span is used.
         span->_ifBeingUsed = true;
+        span->_objSize = size;
         PageCache::getInstance()->_pageMtx.unlock();
 
         // slice the acquired span, no need for locking, because no other threads can access this span

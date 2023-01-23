@@ -1,3 +1,4 @@
+#pragma once
 #include"common.h"
 
 // method1
@@ -25,8 +26,10 @@ public:
             // cannot New a new T
             if (_remainingBytes < sizeof(T))
             {
-                _memory = (char *)malloc(128 * 1024);
-                _remainingBytes += 128 * 1024;
+                _remainingBytes = 128 * 1024;
+                // _memory = (char *)malloc(128 * 1024);
+                _memory = (char *)SystemAlloc(_remainingBytes >> 13);
+                // _remainingBytes += 128 * 1024;
                 if (_memory == nullptr)
                 {
                     throw std::bad_alloc();
