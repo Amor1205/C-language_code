@@ -26,6 +26,11 @@ public:
         // find index and push into freelist
         size_t index = sizeClass::index(size);
         _freeLists[index].Push(ptr);
+
+        if(_freeLists[index].Size() >= _freeLists[index].MaxSize())
+        {
+            ListTooLong(_freeLists[index], size);
+        }
     }
     void *FetchFromCentralCache(size_t index, size_t size)
     {
@@ -41,8 +46,16 @@ public:
         if(actualNum == 1)
             assert(begin == end);
         else
-            _freeLists[index].PushRange(NextObj(begin), end);
+            _freeLists[index].PushRange(NextObj(begin), end, actualNum - 1);
         return begin;
+    }
+    void ListTooLong(FreeList& list, size_t size)
+    {
+        void *begin = nullptr;
+        void *end = nullptr;
+        list.PopRange(begin, end, list.MaxSize());
+
+        CentralCache::getInstance()->ReleaseListToSpans(begin, size);
 
     }
 

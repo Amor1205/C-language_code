@@ -3,6 +3,13 @@
 #include <assert.h>
 #include <thread>
 #include <algorithm>
+#include<unordered_map>
+#ifdef _WIN32
+#include<windows.h>
+#elif __APPLE__
+//
+#endif
+
 #include <mutex>
 using std::cout;
 using std::endl;
@@ -16,11 +23,25 @@ typedef long long PAGE_ID;
 #endif
 
 static const size_t MAX_BYTES = 256 * 1024;
- static const size_t NUM_FREELISTS = 256;
- // common function
- static void *&NextObj(void *obj)
- {
-     return *(void **)obj;
+static const size_t NUM_FREELISTS = 256;
+static const size_t NUM_PAGES = 129;
+static const size_t PAGE_SHIFT = 13;
+// common function
+static void *&NextObj(void *obj)
+{
+    return *(void **)obj;
+}
+inline static void* SystemAlloc(size_t kpage)
+{
+    void *ptr;
+#ifdef _WIN32
+    ptr = VirtualAlloc(0, kpage << 13, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+#elif __APPLE__
+    //
+#endif 
+    if(ptr == nullptr)
+        throw std::bad_alloc();
+    return ptr;
 }
 
 class FreeList
@@ -31,18 +52,34 @@ public:
         assert(obj);
         NextObj(obj) = _freeList;
         _freeList = obj;
+        ++_size;
     }
-    void PushRange(void* begin, void* end)
+    void PushRange(void *begin, void *end,size_t n)
     {
         assert(begin);
         NextObj(end) = _freeList;
         _freeList = begin;
+        _size += n;
+    }
+    void PopRange(void*& begin ,void*& end, size_t n)
+    {
+        assert(n <= _size);
+        begin = _freeList;
+        end = begin;
+        for (size_t i = 0; i < n - 1; ++i)
+        {
+            end = NextObj(end);
+        }
+        _freeList = NextObj(end);
+        NextObj(end) = nullptr;
+        _size -= n;
     }
     void *Pop()
     {
         assert(_freeList);
         // head pop
         void *obj = _freeList;
+        --_size;
         _freeList = NextObj(obj);
         return obj;
     }
@@ -50,14 +87,19 @@ public:
     {
         return _freeList == nullptr;
     }
-    size_t& MaxSize()
+    size_t &MaxSize()
     {
         return _maxSize;
+    }
+    size_t Size()
+    {
+        return _size;
     }
 
 private:
     void *_freeList = nullptr;
     size_t _maxSize = 1;
+    size_t _size;
 };
 
 class sizeClass
@@ -123,27 +165,36 @@ public:
     {
         assert(size > 0);
         int num = MAX_BYTES / size;
-        if(num < 2)
+        if (num < 2)
             return 2;
-        else if(num > 512)
+        else if (num > 512)
             return 512;
         else
-            return num; 
+            return num;
+    }
+    static size_t NumMovePage(size_t size)
+    {
+        size_t num = NumMoveSize(size);
+        size_t npage = num * size;
+        npage >>= PAGE_SHIFT;
+        if (npage == 0)
+            npage == 1;
+        return npage;
     }
 };
 
-//manage continuous pages
+// manage continuous pages
 class Span
 {
 public:
     PAGE_ID _pageid = 0; // Page id of the start page of the large block of memory
-    size_t _n = 0;// num of page
+    size_t _n = 0;       // num of page
 
-    Span* _next = nullptr;
+    Span *_next = nullptr;
     Span *_prev = nullptr;
-
+    bool _ifBeingUsed = false;
     size_t _useCount = 0; // num of small blocks of memory allocated
-    void *_freeList = nullptr; 
+    void *_freeList = nullptr;
 };
 
 class SpanList
@@ -155,7 +206,11 @@ public:
         _head->_next = _head;
         _head->_prev = _head;
     }
-    void Insert(Span* pos, Span* newSpan)
+    void PushFront(Span* span)
+    {
+        Insert(Begin(), span);
+    }
+    void Insert(Span *pos, Span *newSpan)
     {
         assert(pos);
         assert(newSpan);
@@ -165,7 +220,17 @@ public:
         newSpan->_next = pos;
         pos->_prev = newSpan;
     }
-    void Erase(Span* pos)
+    bool Empty()
+    {
+        return _head->_next == _head;
+    }
+    Span* PopFront()
+    {
+        Span* front = _head->_next;
+        Erase(front);
+        return front;
+    }
+    void Erase(Span *pos)
     {
         assert(pos);
         assert(pos != _head);
@@ -175,11 +240,19 @@ public:
 
         prev->_next = next;
         next->_prev = prev;
-
+    }
+    Span *Begin()
+    {
+        return _head->_next;
+    }
+    Span *End()
+    {
+        return _head;
     }
 
 private:
     Span *_head;
+
 public:
     std::mutex _mtx;
 };
