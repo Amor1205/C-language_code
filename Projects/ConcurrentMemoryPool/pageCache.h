@@ -1,6 +1,7 @@
 #pragma once
 #include "common.h"
 #include "objectMemoryPool.h"
+#include "pageMap.h"
 
 class PageCache
 {
@@ -11,19 +12,25 @@ public:
     }
     Span *MapObjToSpan(void *obj)
     {
-        std::unique_lock lock(_pageMtx); 
-        // calculate pageid
+        // std::unique_lock lock(_pageMtx); 
+        // // calculate pageid
+        // PAGE_ID id = (PAGE_ID)obj >> PAGE_SHIFT;
+        // auto ret = _idSpanMap.find(id);
+        // if (ret != _idSpanMap.end())
+        // {
+        //     return ret->second;
+        // }
+        // else
+        // {
+        //     assert(false);
+        //     return nullptr;
+        // }
+
+        //no need for locking
         PAGE_ID id = (PAGE_ID)obj >> PAGE_SHIFT;
-        auto ret = _idSpanMap.find(id);
-        if (ret != _idSpanMap.end())
-        {
-            return ret->second;
-        }
-        else
-        {
-            assert(false);
-            return nullptr;
-        }
+        auto ret = (Span *)_idSpanMap.get(id);
+        assert(ret != nullptr);
+        return ret;
     }
     void ReleaseSpanToPageCache(Span *span)
     {
@@ -42,12 +49,16 @@ public:
         while (1)
         {
             PAGE_ID prevId = span->_pageid - 1;
-            auto ret = _idSpanMap.find(prevId);
-            //no more pages ahead
-            if (ret == _idSpanMap.end())
+            // auto ret = _idSpanMap.find(prevId);
+            auto ret = (Span *)_idSpanMap.get(prevId);
+            // no more pages ahead
+            // if (ret == _idSpanMap.end())
+            //     break;
+            if(ret == nullptr)
                 break;
-            //previous page is being used
-            Span *prevSpan = ret->second;
+            // previous page is being used
+            // Span *prevSpan = ret->second;
+            Span *prevSpan = ret;
             if (prevSpan->_ifBeingUsed == true)
                 break;
             //more than NUM_PAGES, cannot control
@@ -61,10 +72,14 @@ public:
         while(1)
         {
             PAGE_ID nextId = span->_pageid + span->_n;
-            auto ret = _idSpanMap.find(nextId);
-            if(ret == _idSpanMap.end())
+            // auto ret = _idSpanMap.find(nextId);
+            auto ret = _idSpanMap.get(nextId);
+            // if(ret == _idSpanMap.end())
+            //     break;
+            if(ret == nullptr)
                 break;
-            Span *nextSpan = ret->second;
+            // Span *nextSpan = ret->second;
+            Span *nextSpan = ret;
             if(nextSpan->_ifBeingUsed == true)
                 break;
             if(nextSpan->_n + span->_n >= NUM_PAGES)
@@ -75,11 +90,13 @@ public:
         }
         _spanLists[span->_n].PushFront(span);
         span->_ifBeingUsed = false;
-        _idSpanMap[span->_pageid] = span;
-        _idSpanMap[span->_pageid + span->_n - 1] = span;
+        // _idSpanMap[span->_pageid] = span;
+        _idSpanMap.set(span->_pageid, span);
+        // _idSpanMap[span->_pageid + span->_n - 1] = span;
+        _idSpanMap.set(span->_pageid + span->_n, span);
     }
     // get a span (K pages)
-    Span *NewSpan(size_t npage)
+    Span * NewSpan(size_t npage)
     {
         assert(npage > 0);
         // > 128 page , apply memory from the heap
@@ -92,14 +109,21 @@ public:
             span->_pageid = (PAGE_ID)ptr >> PAGE_SHIFT;
             span->_n = npage;
             
-            _idSpanMap[span->_pageid] = span;
+            // _idSpanMap[span->_pageid] = span;
+            _idSpanMap.set(span->_pageid, span);
 
             return span;
         }
         // check if there is a span in _spanlists[npage]
         if (!_spanLists[npage].Empty())
         {
-            return _spanLists[npage].PopFront();
+            Span* nPageSpan = _spanLists[npage].PopFront();
+            for (PAGE_ID i = 0; i < nPageSpan->_n; ++i)
+            {
+                // _idSpanMap[nPageSpan->_pageid + i] = nPageSpan;
+                _idSpanMap.set(nPageSpan->_pageid + i, nPageSpan);
+            }
+            return nPageSpan;
         }
         // if no span for npage, search for bigger one，cutting
         for (size_t i = npage + 1; i < NUM_PAGES; ++i)
@@ -119,13 +143,16 @@ public:
                 _spanLists[curSpan->_n].PushFront(curSpan);
                 // we need Mapping of first & last page number and curSpan
                 // to recycle memory
-                _idSpanMap[curSpan->_pageid] = curSpan;
-                _idSpanMap[curSpan->_pageid + curSpan->_n - 1] = curSpan;
+                // _idSpanMap[curSpan->_pageid] = curSpan;
+                _idSpanMap.set(curSpan->_pageid, curSpan);
+                // _idSpanMap[curSpan->_pageid + curSpan->_n - 1] = curSpan;
+                _idSpanMap.set(curSpan->_pageid + curSpan->_n - 1, curSpan);
 
                 //  Create a mapping to facilitate finding the corresponding span when reclaiming small chunks of memory
                 for (PAGE_ID i = 0; i < nPageSpan->_n; ++i)
                 {
-                    _idSpanMap[nPageSpan->_pageid + i] = nPageSpan;
+                    // _idSpanMap[nPageSpan->_pageid + i] = nPageSpan;
+                    _idSpanMap.set(nPageSpan->_pageid + i, nPageSpan);
                 }
                 return nPageSpan;
             }
@@ -148,7 +175,14 @@ private:
     objectMemoryPool<Span> _spanPool;
 
     std::unordered_map<PAGE_ID, Span *> _idSpanMap;
-    PageCache() {}
+#ifdef _WIN64
+    TCMalloc_PageMap1<64 - PAGE_SHIFT> _idSpanMap;
+#elif _WIN32
+    TCMalloc_PageMap1<32 - PAGE_SHIFT> _idSpanMap;
+#endif
+    PageCache()
+    {
+    }
     PageCache(const PageCache &) = delete;
 
     static PageCache _sInst;

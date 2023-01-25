@@ -49,6 +49,7 @@ public:
             tail = NextObj(tail);
             begin += size;
         }
+        NextObj(tail) = nullptr;
         list._mtx.lock();
         list.PushFront(span);
         list._mtx.unlock();
