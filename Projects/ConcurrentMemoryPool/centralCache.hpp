@@ -1,7 +1,7 @@
 #pragma once
 
-#include"common.h"
-#include"pageCache.h"
+#include"common.hpp"
+#include"pageCache.hpp"
 
 //singleton mode
 class CentralCache
