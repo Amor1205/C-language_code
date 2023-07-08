@@ -1,5 +1,5 @@
 #pragma once
-#include"common.h"
+#include"common.hpp"
 
 // method1
 // template<size_t N>
