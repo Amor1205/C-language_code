@@ -1,8 +1,8 @@
 #pragma once
-#include "common.h"
-#include "threadCache.h"
-#include "pageCache.h"
-#include"objectMemoryPool.h"
+#include "common.hpp"
+#include "threadCache.hpp"
+#include "pageCache.hpp"
+#include"objectMemoryPool.hpp"
 
 static void *ConcurrentAlloc(size_t size)
 {
