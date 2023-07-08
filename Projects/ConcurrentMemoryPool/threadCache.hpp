@@ -1,5 +1,5 @@
-#include "common.h"
-#include "centralCache.h"
+#include "common.hpp"
+#include "centralCache.hpp"
 class ThreadCache
 {
 public:
