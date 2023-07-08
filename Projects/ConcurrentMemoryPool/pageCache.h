@@ -1,7 +1,7 @@
 #pragma once
-#include "common.h"
-#include "objectMemoryPool.h"
-#include "pageMap.h"
+#include "common.hpp"
+#include "objectMemoryPool.hpp"
+#include "pageMap.hpp"
 
 class PageCache
 {
