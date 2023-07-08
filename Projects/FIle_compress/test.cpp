@@ -1,5 +1,5 @@
-#include "huffman.h"
-#include "compress.h"
+#include "huffman.hpp"
+#include "compress.hpp"
 
 void menu()
 {
